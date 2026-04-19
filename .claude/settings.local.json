@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "mcp__notebooklm-mcp__notebook_list",
+      "mcp__notebooklm-mcp__notebook_get",
+      "mcp__notebooklm-mcp__notebook_query",
+      "mcp__notebooklm-mcp__source_get_content",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

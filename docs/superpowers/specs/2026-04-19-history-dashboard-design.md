@@ -145,7 +145,7 @@ Returns `{ typed, link, reload, form, total }`. Its loading state is independent
 ### Derivations (pure, in `lib/`)
 
 - `groupByDay(entries)` → `{ date: Date; entries: HistoryEntry[]; totalViews: number }[]`, descending by date
-- `bucketByDay(entries, days = 12)` → `{ date: Date; label: string; pages: number; views: number }[]` — `pages` = unique entries that day, `views` = Σ `visitCount`
+- `bucketByDay(entries, days = 12, endDate = startOfToday())` → `{ date: Date; label: string; pages: number; views: number }[]` — 12 consecutive day-buckets ending on `endDate`; `pages` = unique entries that day, `views` = Σ `visitCount`
 - `topDomains(entries, limit = 6)` → `{ host, letter, color, count }[]` + `totalDomains: number`
 - `filterEntries(entries, q)` → case-insensitive `title | url | host` match (empty q returns original reference for memoization)
 
@@ -224,7 +224,7 @@ Tailwind v4 exposes these as `bg-bg-0`, `text-fg-0`, `border-line-0`, `text-ambe
 | ------------- | --------------------------------------------- |
 | `Button`      | all topbar icon buttons + Today chip (`variant="ghost" size="icon"` / custom chip variant) |
 | `Input`       | SearchInput                                   |
-| `Tooltip`     | "Coming soon" tooltips on disabled view segment items; Recharts custom tooltips reuse the same styled wrapper |
+| `Tooltip`     | "Coming soon" tooltips on disabled view segment items. (Recharts has its own `Tooltip` primitive used inside charts; our custom chart-tooltip content borrows the same design tokens — `bg-bg-3 border-line-1 text-fg-0 text-[11px] font-mono rounded-md` — but doesn't import shadcn's.) |
 | `ToggleGroup` | ViewSegment                                   |
 
 Install via `npx shadcn@latest add input tooltip toggle-group`.
