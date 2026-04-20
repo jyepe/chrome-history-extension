@@ -3,6 +3,7 @@ import type {
   DayGroup,
   HistoryEntry,
   HourGroup,
+  WeekdayBucket,
 } from "./types";
 
 const WEEKDAYS = [
@@ -91,6 +92,18 @@ export function addDays(d: Date, n: number): Date {
   return result;
 }
 
+export function startOfWeek(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
+}
+
+export function addWeeks(d: Date, n: number): Date {
+  return addDays(d, n * 7);
+}
+
+export function isSameWeek(a: Date, b: Date): boolean {
+  return startOfWeek(a).getTime() === startOfWeek(b).getTime();
+}
+
 function dayKey(d: Date): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
@@ -160,6 +173,35 @@ export function bucketByHour(
     const h = e.lastVisitTime.getHours();
     buckets[h].pages += 1;
     buckets[h].views += e.visitCount;
+  }
+  return buckets;
+}
+
+export function bucketByWeekday(
+  entries: readonly HistoryEntry[],
+  weekStart: Date,
+): WeekdayBucket[] {
+  const start = startOfDay(weekStart);
+  const buckets: WeekdayBucket[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    buckets.push({
+      date: d,
+      weekdayShort: WEEKDAYS[d.getDay()].slice(0, 3),
+      monthShort: MONTHS_SHORT[d.getMonth()],
+      entries: [],
+      totalViews: 0,
+    });
+  }
+  for (const e of entries) {
+    for (const b of buckets) {
+      if (isSameDay(e.lastVisitTime, b.date)) {
+        b.entries.push(e);
+        b.totalViews += e.visitCount;
+        break;
+      }
+    }
   }
   return buckets;
 }

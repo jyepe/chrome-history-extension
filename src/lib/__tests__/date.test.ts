@@ -6,8 +6,12 @@ import {
   startOfDay,
   startOfToday,
   startOfHour,
+  startOfWeek,
   isSameDay,
+  isSameWeek,
   addDays,
+  addWeeks,
+  bucketByWeekday,
   groupByDay,
   groupByHour,
   bucketByDay,
@@ -170,6 +174,102 @@ describe("bucketByHour", () => {
     expect(buckets[11].views).toBe(1);
     expect(buckets[9].pages).toBe(0);
     expect(buckets[9].views).toBe(0);
+  });
+});
+
+describe("startOfWeek", () => {
+  it("returns Sunday midnight for any day in the week", () => {
+    // 2026-04-14 is a Tuesday; Sunday of that week is 2026-04-12
+    const s = startOfWeek(new Date(2026, 3, 14, 17, 30, 45, 123));
+    expect(s.getFullYear()).toBe(2026);
+    expect(s.getMonth()).toBe(3);
+    expect(s.getDate()).toBe(12);
+    expect(s.getHours()).toBe(0);
+    expect(s.getMinutes()).toBe(0);
+  });
+  it("is idempotent on Sunday", () => {
+    const s = startOfWeek(new Date(2026, 3, 12, 11, 0));
+    expect(s.getDate()).toBe(12);
+  });
+  it("crosses month boundaries", () => {
+    // 2026-05-01 is a Friday; Sunday of that week is 2026-04-26
+    const s = startOfWeek(new Date(2026, 4, 1));
+    expect(s.getMonth()).toBe(3);
+    expect(s.getDate()).toBe(26);
+  });
+});
+
+describe("addWeeks", () => {
+  it("shifts by +1 week", () => {
+    const d = addWeeks(new Date(2026, 3, 14), 1);
+    expect(d.getDate()).toBe(21);
+    expect(d.getHours()).toBe(0);
+  });
+  it("shifts by -1 week across month boundary", () => {
+    const d = addWeeks(new Date(2026, 4, 1), -1);
+    expect(d.getMonth()).toBe(3);
+    expect(d.getDate()).toBe(24);
+  });
+  it("returns start-of-day at n=0", () => {
+    const d = addWeeks(new Date(2026, 3, 14, 17, 30), 0);
+    expect(d.getDate()).toBe(14);
+    expect(d.getHours()).toBe(0);
+  });
+});
+
+describe("isSameWeek", () => {
+  it("is true for days in the same Sun–Sat week", () => {
+    expect(
+      isSameWeek(new Date(2026, 3, 12, 9, 0), new Date(2026, 3, 18, 23, 59)),
+    ).toBe(true);
+  });
+  it("is false across a Saturday→Sunday boundary", () => {
+    expect(
+      isSameWeek(new Date(2026, 3, 18, 23, 59), new Date(2026, 3, 19, 0, 1)),
+    ).toBe(false);
+  });
+});
+
+describe("bucketByWeekday", () => {
+  it("produces 7 buckets Sun→Sat with the right labels", () => {
+    const weekStart = new Date(2026, 3, 12);
+    const buckets = bucketByWeekday([], weekStart);
+    expect(buckets).toHaveLength(7);
+    expect(buckets.map((b) => b.weekdayShort)).toEqual([
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+    ]);
+    expect(buckets[0].date.getDate()).toBe(12);
+    expect(buckets[6].date.getDate()).toBe(18);
+    expect(buckets[0].monthShort).toBe("Apr");
+    for (const b of buckets) {
+      expect(b.entries).toEqual([]);
+      expect(b.totalViews).toBe(0);
+    }
+  });
+
+  it("assigns entries to the correct weekday and sums views", () => {
+    const weekStart = new Date(2026, 3, 12);
+    const entries = [
+      entry("2026-04-12T09:00:00", 2), // Sun
+      entry("2026-04-12T10:00:00", 3), // Sun (same day, different URL)
+      entry("2026-04-14T14:00:00", 1), // Tue
+      entry("2026-04-20T10:00:00", 9), // outside week — excluded
+    ];
+    const buckets = bucketByWeekday(entries, weekStart);
+    expect(buckets[0].entries).toHaveLength(2);
+    expect(buckets[0].totalViews).toBe(5);
+    expect(buckets[2].entries).toHaveLength(1);
+    expect(buckets[2].totalViews).toBe(1);
+    expect(buckets[1].entries).toHaveLength(0);
+    // entry outside week is not assigned
+    const total = buckets.reduce((n, b) => n + b.entries.length, 0);
+    expect(total).toBe(3);
   });
 });
 

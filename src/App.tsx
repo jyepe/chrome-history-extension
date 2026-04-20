@@ -3,6 +3,7 @@ import { Topbar } from "@/components/history/Topbar";
 import { ColumnHeader } from "@/components/history/ColumnHeader";
 import { HistoryList } from "@/components/history/HistoryList";
 import { DayView } from "@/components/history/DayView";
+import { WeekView } from "@/components/history/WeekView";
 import { Sidebar } from "@/components/history/Sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useHistory } from "@/hooks/useHistory";
@@ -15,10 +16,13 @@ import {
   formatDateLong,
   formatShortDate,
   isSameDay,
+  isSameWeek,
   startOfToday,
+  startOfWeek,
 } from "@/lib/date";
 import { filterEntries } from "@/lib/search";
 import { topDomains } from "@/lib/topDomains";
+import { cn } from "@/lib/utils";
 import type { ViewId } from "@/components/history/ViewSegment";
 
 const DAYS = 30;
@@ -35,6 +39,7 @@ export default function App() {
   );
 
   const isDay = view === "day";
+  const isWeek = view === "week";
 
   const dayEntries = useMemo(
     () =>
@@ -44,7 +49,16 @@ export default function App() {
     [isDay, filtered, selectedDay],
   );
 
-  const viewEntries = isDay ? dayEntries : filtered;
+  const weekStart = useMemo(() => startOfWeek(selectedDay), [selectedDay]);
+  const weekEntries = useMemo(
+    () =>
+      isWeek
+        ? filtered.filter((e) => isSameWeek(e.lastVisitTime, weekStart))
+        : filtered,
+    [isWeek, filtered, weekStart],
+  );
+
+  const viewEntries = isDay ? dayEntries : isWeek ? weekEntries : filtered;
 
   // Use calendar-day arithmetic so the window lands on the next local midnight
   // even across DST transitions (adding MS_PER_DAY to a midnight Date drifts ±1h).
@@ -52,18 +66,26 @@ export default function App() {
     () => addDays(selectedDay, 1).getTime(),
     [selectedDay],
   );
+  const weekEndMs = useMemo(
+    () => addDays(weekStart, 7).getTime(),
+    [weekStart],
+  );
+  const visitWindow = isDay ? 1 : isWeek ? 7 : DAYS;
+  const visitNowMs = isDay ? dayEndMs : isWeek ? weekEndMs : undefined;
   const { counts: transitions } = useVisits(
     viewEntries,
-    isDay ? 1 : DAYS,
-    isDay ? dayEndMs : undefined,
+    visitWindow,
+    visitNowMs,
   );
 
   const buckets = useMemo(
     () =>
       isDay
         ? bucketByHour(dayEntries, selectedDay)
-        : bucketByDay(filtered, 12),
-    [isDay, dayEntries, filtered, selectedDay],
+        : isWeek
+          ? bucketByDay(weekEntries, 7, addDays(weekStart, 6))
+          : bucketByDay(filtered, 12),
+    [isDay, isWeek, dayEntries, weekEntries, filtered, selectedDay, weekStart],
   );
 
   const { list: domains, totalDomains } = useMemo(
@@ -73,24 +95,38 @@ export default function App() {
 
   const rangeLabel = useMemo(() => {
     if (isDay) return formatDateLong(selectedDay);
+    if (isWeek) {
+      return `${formatShortDate(weekStart)} – ${formatShortDate(addDays(weekStart, 6))}`;
+    }
     const end = startOfToday();
     const start = new Date(end);
     start.setDate(end.getDate() - (DAYS - 1));
     return `${formatShortDate(start)} – ${formatShortDate(end)}`;
-  }, [isDay, selectedDay]);
+  }, [isDay, isWeek, selectedDay, weekStart]);
 
   const activityTitle = isDay ? "Hourly Activity" : "Browsing Activity";
 
   const isOnToday = isDay && isSameDay(selectedDay, startOfToday());
+  const isOnThisWeek = isWeek && isSameWeek(selectedDay, startOfToday());
   const onPrev = isDay
     ? () => setSelectedDay((d) => addDays(d, -1))
-    : undefined;
+    : isWeek
+      ? () => setSelectedDay((d) => addDays(d, -7))
+      : undefined;
   const onNext = isDay
     ? () => setSelectedDay((d) => addDays(d, 1))
-    : undefined;
+    : isWeek
+      ? () => setSelectedDay((d) => addDays(d, 7))
+      : undefined;
   const onToday =
-    isDay && !isOnToday ? () => setSelectedDay(startOfToday()) : undefined;
-  const canGoNext = isDay ? !isOnToday : true;
+    (isDay && !isOnToday) || (isWeek && !isOnThisWeek)
+      ? () => setSelectedDay(startOfToday())
+      : undefined;
+  const canGoNext = isDay
+    ? !isOnToday
+    : isWeek
+      ? !isOnThisWeek
+      : true;
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -107,10 +143,22 @@ export default function App() {
           canGoNext={canGoNext}
         />
         <div className="grid min-h-0 grid-cols-[1fr_340px]">
-          <section className="grid min-h-0 grid-rows-[32px_1fr] border-r border-line-0 bg-bg-0">
-            <ColumnHeader />
+          <section
+            className={cn(
+              "grid min-h-0 border-r border-line-0 bg-bg-0",
+              isWeek ? "grid-rows-[1fr]" : "grid-rows-[32px_1fr]",
+            )}
+          >
+            {!isWeek && <ColumnHeader />}
             <div className="scroll-track overflow-y-auto overflow-x-hidden">
-              {isDay ? (
+              {isWeek ? (
+                <WeekView
+                  entries={weekEntries}
+                  loading={loading}
+                  query={debouncedQuery}
+                  weekStart={weekStart}
+                />
+              ) : isDay ? (
                 <DayView
                   entries={dayEntries}
                   loading={loading}

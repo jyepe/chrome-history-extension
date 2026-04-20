@@ -21,9 +21,10 @@ export function DayView({ entries, loading, query, selectedDay }: DayViewProps) 
     return <EmptyState variant="search" query={query} />;
   if (entries.length === 0)
     return (
-      <div className="flex items-center justify-center p-12 text-[13px] text-fg-3">
-        No history on {formatDateLong(selectedDay)}
-      </div>
+      <EmptyState
+        variant="range"
+        label={`No history on ${formatDateLong(selectedDay)}`}
+      />
     );
 
   return (
