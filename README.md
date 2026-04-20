@@ -1,73 +1,78 @@
-# React + TypeScript + Vite
+# Modern History Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Chrome extension (Manifest V3) that replaces the default `chrome://history` page with a dark-mode, analytics-driven React dashboard. Press **Ctrl+H** (or open the History menu) and get charts, trend buckets, top-domain rollups, and a virtualized timeline instead of the stock flat list.
 
-Currently, two official plugins are available:
+## What it does
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The extension registers itself as the override for `chrome://history`, so the built-in history page is replaced entirely by a single-page React app rendered inside the browser UI. It pulls directly from Chrome's own history store via the `chrome.history` API — no data leaves the browser, nothing is synced anywhere.
 
-## React Compiler
+You get four ways to look at the same data:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **List** — every visit from the last 30 days in a virtualized scrolling list, grouped by day.
+- **Day** — one calendar day at a time with an hourly header.
+- **Week** — a Sun-aligned 7-day strip with per-day activity.
+- **Month** — a 6×7 calendar grid where each cell shows visit density for that day. Click a cell to pin the sidebar charts to that day while keeping the month in view.
 
-## Expanding the ESLint configuration
+Search is client-side, case-insensitive, debounced, and matches against URL + title.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## What it's modeled after
 
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
+The layout and interaction model are inspired by **[Vivaldi's history dashboard](https://vivaldi.com/features/history/)** — a browser that treats history as something worth analyzing, not just scrolling through. Key Vivaldi-isms carried over:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- A right-hand sidebar of compact charts that re-scope based on the selected view.
+- A calendar-heatmap month view with day-density coloring.
+- Trend buckets that answer "when am I actually browsing?" rather than just "what did I visit?"
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+The visual design is a dark-first custom theme built on shadcn/ui + Tailwind v4 tokens, not a direct Vivaldi clone.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Metrics explained
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
+The sidebar renders three visualizations. All of them re-scope to whatever view is active (day / week / month / last 30 days).
 
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+### Browsing Activity (bar chart)
+
+Count of visits bucketed by time:
+
+- **Day / Month-with-day-selected views** → **Hourly Activity**: 24 one-hour buckets for the selected day.
+- **Week view** → 7 daily buckets for the selected week.
+- **List view** → 12 rolling buckets across the last 30 days.
+
+Tall bars = heavy browsing windows. Useful for spotting "I doom-scrolled from 10pm to 1am" patterns.
+
+### Link Transition Type (donut)
+
+Breaks every visit in the current scope into **how** you got there, using Chrome's `transition` metadata from `chrome.history.getVisits()`:
+
+- **Typed** — you typed the URL into the address bar (or used a search keyword / omnibox suggestion). High share = intentional navigation.
+- **Link** — you clicked a link on another page. High share = follow-the-rabbit-hole browsing.
+- **Reload** — same URL reloaded. High share = long-lived tabs, dashboards, build watchers.
+- **Form** — you arrived via form submission (search results, login flows, POST redirects).
+
+The center of the donut shows the total visit count for the scope. The ratio between Typed and Link is usually the most telling number — a day of pure "Link" visits means you didn't drive where you went.
+
+### Top Domains
+
+Hostnames ranked by visit count within the current scope, with a trailing count of how many other distinct domains you visited. Favicons are rendered via Chrome's built-in `_favicon` service so there's no network fetch.
+
+### Month view density coloring
+
+Each day cell in the calendar grid colors itself by visit count:
+
+- Empty cell → no history that day.
+- Cyan tint → low activity.
+- Amber tint → heavy activity (≥5 visits).
+
+The gradient lets you scan a month and see which days were heads-down vs. which were research sprints.
+
+## Architecture notes
+
+- **Manifest V3** with a minimal background service worker.
+- **React 19 + TypeScript** strict mode.
+- **Vite 8 + @crxjs/vite-plugin** gives HMR on the overridden page during development.
+- **Tailwind CSS 4** via `@tailwindcss/vite`, using `@theme` tokens (no config file).
+- **shadcn/ui** primitives under `src/components/ui/` — generated, don't hand-edit.
+- **Recharts** for the activity bar chart and transition donut.
+- **@tanstack/react-virtual** for the List view so 30 days of history scrolls at 60fps.
+- All Chrome API access goes through a `ChromeProvider` context — hooks own data fetching, components stay pure, and tests can swap in a fake Chrome.
+
+Permissions requested: `history`, `storage`, `favicon`, `tabs`. No host permissions, no network access.
