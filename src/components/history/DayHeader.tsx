@@ -15,7 +15,7 @@ export function DayHeader({ group, collapsed, onToggle }: DayHeaderProps) {
         onClick={onToggle}
         aria-expanded={!collapsed}
         aria-label={collapsed ? "Expand group" : "Collapse group"}
-        className="flex items-center justify-center text-fg-2 transition-transform duration-150"
+        className="flex items-center justify-center text-fg-2 transition-transform duration-150 cursor-pointer"
         style={{ transform: collapsed ? "rotate(0deg)" : "rotate(90deg)" }}
       >
         ▶
