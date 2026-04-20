@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   defaultRangeExtractor,
   useVirtualizer,
@@ -27,14 +27,28 @@ const ROW_HEIGHT = 34;
 export function HistoryList({ entries, loading, query }: HistoryListProps) {
   const groups = useMemo(() => groupByDay(entries), [entries]);
 
+  const [collapsedDays, setCollapsedDays] = useState<Set<string>>(new Set());
+
+  function toggleDay(key: string) {
+    setCollapsedDays((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  }
+
   const items = useMemo<VirtualRow[]>(() => {
     const list: VirtualRow[] = [];
     for (const g of groups) {
-      list.push({ kind: "header", group: g, collapsed: false });
-      for (const e of g.entries) list.push({ kind: "row", entry: e });
+      const key = g.date.toDateString();
+      const collapsed = collapsedDays.has(key);
+      list.push({ kind: "header", group: g, collapsed });
+      if (!collapsed) {
+        for (const e of g.entries) list.push({ kind: "row", entry: e });
+      }
     }
     return list;
-  }, [groups]);
+  }, [groups, collapsedDays]);
 
   const headerIndices = useMemo<number[]>(
     () =>
@@ -122,7 +136,7 @@ export function HistoryList({ entries, loading, query }: HistoryListProps) {
                 <DayHeader
                   group={item.group}
                   collapsed={item.collapsed}
-                  onToggle={() => {}}
+                  onToggle={() => toggleDay(item.group.date.toDateString())}
                 />
               ) : (
                 <HistoryRow entry={item.entry} />
