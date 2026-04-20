@@ -1,3 +1,7 @@
+// @ts-ignore
+import '@fontsource-variable/inter'
+// @ts-ignore
+import '@fontsource-variable/jetbrains-mono'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
