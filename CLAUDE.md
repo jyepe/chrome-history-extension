@@ -48,6 +48,15 @@ src/lib/
   utils.ts     # cn() helper + date math utilities
 ```
 
+### Component & Hook Documentation
+
+Per-component / per-hook explainers live in `docs/`:
+
+- `docs/history components/` — one markdown file per `.tsx` in `src/components/history/` (what it does, hooks used, props, how it fits, UI rendered, core logic).
+- `docs/hooks/` — one markdown file per hook in `src/hooks/` (signature, hooks used, behavior, edge cases).
+
+**When you need to understand how a specific component or hook works, read the matching file in `docs/` first** instead of inferring behavior from the source. Update the relevant doc file whenever you change a component's responsibilities, props, or core logic.
+
 ### Chrome API Integration
 
 - `chrome.history.search()` — bulk fetch by timestamp for list/calendar views
