@@ -11,6 +11,7 @@ export function DayHeader({ group, collapsed, onToggle }: DayHeaderProps) {
   return (
     <div className="grid grid-cols-[16px_1fr_80px] items-center border-b border-line-0 bg-bg-1 px-4 pt-[10px] pb-[8px]">
       <button
+        type="button"
         onClick={onToggle}
         aria-expanded={!collapsed}
         aria-label={collapsed ? "Expand group" : "Collapse group"}
