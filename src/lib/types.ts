@@ -10,6 +10,8 @@ export interface HistoryEntry {
   lastVisitTime: Date;
   visitCount: number;
   typedCount: number;
+  /** Lowercase `${title}\n${url}\n${host}` — precomputed so search doesn't re-lowercase per keystroke. */
+  searchKey: string;
 }
 
 export interface DayGroup {

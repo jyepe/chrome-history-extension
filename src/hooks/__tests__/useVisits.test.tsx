@@ -16,6 +16,7 @@ const entry = (url: string, ms: number): HistoryEntry => ({
   lastVisitTime: new Date(ms),
   visitCount: 1,
   typedCount: 0,
+  searchKey: `${url}\n${url}\nexample.com`.toLowerCase(),
 });
 
 function wrap(api: ReturnType<typeof createFakeChromeApi>) {

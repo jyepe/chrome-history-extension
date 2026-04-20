@@ -20,6 +20,7 @@ function normalize(item: ChromeHistoryItem): HistoryEntry | null {
     lastVisitTime: new Date(item.lastVisitTime ?? Date.now()),
     visitCount: item.visitCount ?? 0,
     typedCount: item.typedCount ?? 0,
+    searchKey: `${title}\n${item.url}\n${host}`.toLowerCase(),
   };
 }
 

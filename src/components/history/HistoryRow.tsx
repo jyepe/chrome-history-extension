@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { FavBadge } from "./FavBadge";
 import { formatTime } from "@/lib/date";
 import { cn } from "@/lib/utils";
@@ -8,7 +9,7 @@ function truncate(url: string): string {
   return url.length <= MAX_URL ? url : url.slice(0, MAX_URL - 1) + "…";
 }
 
-export function HistoryRow({ entry }: { entry: HistoryEntry }) {
+function HistoryRowImpl({ entry }: { entry: HistoryEntry }) {
   const hot = entry.visitCount >= 3;
   return (
     <div
@@ -47,3 +48,5 @@ export function HistoryRow({ entry }: { entry: HistoryEntry }) {
     </div>
   );
 }
+
+export const HistoryRow = memo(HistoryRowImpl);

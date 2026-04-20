@@ -17,6 +17,7 @@ const e = (
   lastVisitTime: new Date(2026, 3, 14),
   visitCount: 1,
   typedCount: 0,
+  searchKey: `${title}\n${url}\n${host}`.toLowerCase(),
 });
 
 const entries: HistoryEntry[] = [

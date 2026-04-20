@@ -12,6 +12,7 @@ const e = (host: string, visits: number): HistoryEntry => ({
   lastVisitTime: new Date(2026, 3, 14),
   visitCount: visits,
   typedCount: 0,
+  searchKey: `${host}\nhttps://${host}/\n${host}`.toLowerCase(),
 });
 
 describe("topDomains", () => {

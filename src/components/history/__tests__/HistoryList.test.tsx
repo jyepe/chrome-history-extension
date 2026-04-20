@@ -15,6 +15,7 @@ const e = (id: string, date: Date, title = id): HistoryEntry => ({
   lastVisitTime: date,
   visitCount: 1,
   typedCount: 0,
+  searchKey: `${title}\nhttps://a.com/${id}\na.com`.toLowerCase(),
 });
 
 const wrap = (ui: React.ReactNode) =>

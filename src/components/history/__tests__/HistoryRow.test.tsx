@@ -15,6 +15,8 @@ const entry: HistoryEntry = {
   lastVisitTime: new Date(2026, 3, 14, 9, 30, 5),
   visitCount: 2,
   typedCount: 0,
+  searchKey:
+    "anthropics/claude-sdk\nhttps://github.com/anthropics/claude-sdk\ngithub.com",
 };
 
 const renderRow = (e: HistoryEntry) =>

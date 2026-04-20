@@ -20,6 +20,7 @@ const entry = (iso: string, views = 1): HistoryEntry => ({
   lastVisitTime: new Date(iso),
   visitCount: views,
   typedCount: 0,
+  searchKey: `t\nhttps://example.com/${iso}\nexample.com`.toLowerCase(),
 });
 
 describe("formatTime", () => {
