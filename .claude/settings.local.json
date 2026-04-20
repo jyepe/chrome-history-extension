@@ -20,7 +20,10 @@
       "Bash(node *)",
       "Bash(npx vitest *)",
       "Bash(C:\\\\Users\\\\yepej\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\5.0.7\\\\scripts\\\\start-server.sh *)",
-      "Bash(C:/Users/yepej/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/skills/brainstorming/scripts/start-server.sh *)"
+      "Bash(C:/Users/yepej/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/skills/brainstorming/scripts/start-server.sh *)",
+      "Bash(git branch *)",
+      "Bash(git stash *)",
+      "Bash(git push *)"
     ]
   }
 }
