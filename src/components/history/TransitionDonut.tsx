@@ -1,4 +1,4 @@
-import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
+import { Cell, Pie, PieChart } from "recharts";
 import type { TransitionCounts } from "@/lib/types";
 
 const SLICES = [
@@ -16,8 +16,7 @@ export function TransitionDonut({ counts }: { counts: TransitionCounts }) {
   return (
     <div className="grid grid-cols-[160px_1fr] items-center gap-3">
       <div className="relative h-[150px] w-[160px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
+        <PieChart width={160} height={150}>
             <Pie
               data={pieData}
               dataKey="val"
@@ -33,8 +32,7 @@ export function TransitionDonut({ counts }: { counts: TransitionCounts }) {
                 <Cell key={i} fill={hasData ? d.color : "var(--color-bg-2)"} />
               ))}
             </Pie>
-          </PieChart>
-        </ResponsiveContainer>
+        </PieChart>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           <div className="text-[18px] font-semibold text-fg-0">
             {counts.total}
