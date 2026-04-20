@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useChromeApi } from "@/components/ChromeProvider";
+import { useExtensionId } from "@/components/ChromeProvider";
 import { cn } from "@/lib/utils";
 
 export interface FavBadgeProps {
@@ -19,8 +19,7 @@ export function FavBadge({
   size = 16,
   className,
 }: FavBadgeProps) {
-  const { runtime } = useChromeApi();
-  const extId = runtime.getExtensionId();
+  const extId = useExtensionId();
   const [failed, setFailed] = useState(false);
   const src =
     extId && !failed
