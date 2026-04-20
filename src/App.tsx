@@ -53,9 +53,9 @@ export default function App() {
   const weekEntries = useMemo(
     () =>
       isWeek
-        ? filtered.filter((e) => isSameWeek(e.lastVisitTime, selectedDay))
+        ? filtered.filter((e) => isSameWeek(e.lastVisitTime, weekStart))
         : filtered,
-    [isWeek, filtered, selectedDay],
+    [isWeek, filtered, weekStart],
   );
 
   const viewEntries = isDay ? dayEntries : isWeek ? weekEntries : filtered;

@@ -2,7 +2,7 @@ import { memo, useMemo, type KeyboardEvent, type MouseEvent } from "react";
 import { FavBadge } from "./FavBadge";
 import { EmptyState } from "./EmptyState";
 import { ListSkeleton } from "./ListSkeleton";
-import { bucketByWeekday } from "@/lib/date";
+import { addDays, bucketByWeekday, formatShortDate } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import { useChromeApi } from "@/components/ChromeProvider";
 import type { HistoryEntry } from "@/lib/types";
@@ -25,9 +25,10 @@ export function WeekView({ entries, loading, query, weekStart }: WeekViewProps) 
     return <EmptyState variant="search" query={query} />;
   if (entries.length === 0)
     return (
-      <div className="flex items-center justify-center p-12 text-[13px] text-fg-3">
-        No history this week
-      </div>
+      <EmptyState
+        variant="range"
+        label={`No history from ${formatShortDate(weekStart)} to ${formatShortDate(addDays(weekStart, 6))}`}
+      />
     );
 
   return (
@@ -35,6 +36,7 @@ export function WeekView({ entries, loading, query, weekStart }: WeekViewProps) 
       {buckets.map((b) => (
         <div
           key={b.date.getTime()}
+          data-testid={`week-col-${b.date.getDay()}`}
           className="flex min-h-0 flex-col border-r border-line-0 last:border-r-0"
         >
           <div className="border-b border-line-0 bg-bg-1 px-3 py-[10px] text-[11px] font-semibold text-fg-2">
@@ -71,6 +73,8 @@ function WeekItemImpl({ entry }: { entry: HistoryEntry }) {
   return (
     <a
       href={entry.url}
+      title={entry.url}
+      aria-label={entry.title || entry.url}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       className={cn(

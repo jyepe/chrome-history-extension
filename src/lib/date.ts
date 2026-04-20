@@ -93,9 +93,7 @@ export function addDays(d: Date, n: number): Date {
 }
 
 export function startOfWeek(d: Date): Date {
-  const start = startOfDay(d);
-  start.setDate(start.getDate() - start.getDay());
-  return start;
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
 }
 
 export function addWeeks(d: Date, n: number): Date {

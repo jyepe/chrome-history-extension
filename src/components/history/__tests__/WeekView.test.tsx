@@ -36,7 +36,7 @@ describe("WeekView", () => {
     expect(screen.getByLabelText("Loading history")).toBeInTheDocument();
   });
 
-  it('renders the "no history this week" empty state when there are no entries', () => {
+  it('renders the "no history in range" empty state when there are no entries', () => {
     wrap(
       <WeekView
         entries={[]}
@@ -45,7 +45,9 @@ describe("WeekView", () => {
         weekStart={weekStart}
       />,
     );
-    expect(screen.getByText(/No history this week/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/No history from 4\/12\/2026 to 4\/18\/2026/),
+    ).toBeInTheDocument();
   });
 
   it('renders the "no matches" empty state when a query is active', () => {
@@ -92,15 +94,11 @@ describe("WeekView", () => {
         weekStart={weekStart}
       />,
     );
-    const tue = screen.getByText("Tuesday Page");
-    const thu = screen.getByText("Thursday Page");
-    expect(tue).toBeInTheDocument();
-    expect(thu).toBeInTheDocument();
-    // Each column has its own header; the header closest to the entry should be
-    // the one matching its weekday.
-    const tueCol = tue.closest(".flex");
-    const thuCol = thu.closest(".flex");
-    expect(tueCol?.textContent).toMatch(/Tue/);
-    expect(thuCol?.textContent).toMatch(/Thu/);
+    const tueCol = screen.getByTestId("week-col-2");
+    const thuCol = screen.getByTestId("week-col-4");
+    const monCol = screen.getByTestId("week-col-1");
+    expect(tueCol).toContainElement(screen.getByText("Tuesday Page"));
+    expect(thuCol).toContainElement(screen.getByText("Thursday Page"));
+    expect(monCol.textContent).not.toMatch(/Tuesday Page|Thursday Page/);
   });
 });
