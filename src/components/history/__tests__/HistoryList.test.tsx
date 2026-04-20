@@ -43,12 +43,10 @@ describe("HistoryList", () => {
       e("b", new Date(2026, 3, 14, 9)),
       e("c", new Date(2026, 3, 13, 15)),
     ];
-    const { container } = wrap(
-      <HistoryList entries={items} loading={false} query="" />,
-    );
-    const dayHeaders = container.querySelectorAll("div.sticky");
-    expect(dayHeaders).toHaveLength(2);
-    expect(dayHeaders[0].textContent).toMatch(/April 14, 2026/);
-    expect(dayHeaders[1].textContent).toMatch(/April 13, 2026/);
+    wrap(<HistoryList entries={items} loading={false} query="" />);
+    const headers = screen.getAllByText(/April 1[34], 2026/);
+    expect(headers).toHaveLength(2);
+    expect(headers[0].textContent).toMatch(/April 14, 2026/);
+    expect(headers[1].textContent).toMatch(/April 13, 2026/);
   });
 });
