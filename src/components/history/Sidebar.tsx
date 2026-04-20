@@ -1,7 +1,13 @@
 import { ActivityChart } from "./ActivityChart";
 import { TransitionDonut } from "./TransitionDonut";
 import { TopDomains } from "./TopDomains";
-import type { ActivityBucket, TopDomain, TransitionCounts } from "@/lib/types";
+import { MonthEntriesPanel } from "./MonthEntriesPanel";
+import type {
+  ActivityBucket,
+  HistoryEntry,
+  TopDomain,
+  TransitionCounts,
+} from "@/lib/types";
 
 export interface SidebarProps {
   rangeLabel: string;
@@ -10,6 +16,9 @@ export interface SidebarProps {
   domains: TopDomain[];
   totalDomains: number;
   activityTitle?: string;
+  /** When provided, render a "Visited Sites" panel for the given day above the charts. */
+  entriesForDay?: readonly HistoryEntry[];
+  entriesDayLabel?: string;
 }
 
 export function Sidebar({
@@ -19,12 +28,21 @@ export function Sidebar({
   domains,
   totalDomains,
   activityTitle = "Browsing Activity",
+  entriesForDay,
+  entriesDayLabel,
 }: SidebarProps) {
   return (
     <aside className="scroll-track flex flex-col gap-6 overflow-y-auto bg-bg-0 px-[18px] pb-6 pt-4">
       <div className="mb-[2px] font-mono text-[13px] font-medium tracking-[0.2px] text-fg-0">
         {rangeLabel}
       </div>
+
+      {entriesForDay && entriesDayLabel && (
+        <MonthEntriesPanel
+          dayLabel={entriesDayLabel}
+          entries={entriesForDay}
+        />
+      )}
 
       <section>
         <h3 className="mb-3 text-[13px] font-semibold tracking-[0.1px] text-fg-0">

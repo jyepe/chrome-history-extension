@@ -4,6 +4,7 @@ import { ColumnHeader } from "@/components/history/ColumnHeader";
 import { HistoryList } from "@/components/history/HistoryList";
 import { DayView } from "@/components/history/DayView";
 import { WeekView } from "@/components/history/WeekView";
+import { MonthView } from "@/components/history/MonthView";
 import { Sidebar } from "@/components/history/Sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useHistory } from "@/hooks/useHistory";
@@ -11,12 +12,16 @@ import { useVisits } from "@/hooks/useVisits";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
   addDays,
+  addMonths,
   bucketByDay,
   bucketByHour,
   formatDateLong,
   formatShortDate,
   isSameDay,
+  isSameMonth,
   isSameWeek,
+  monthLabel,
+  startOfMonth,
   startOfToday,
   startOfWeek,
 } from "@/lib/date";
@@ -40,13 +45,14 @@ export default function App() {
 
   const isDay = view === "day";
   const isWeek = view === "week";
+  const isMonth = view === "month";
 
   const dayEntries = useMemo(
     () =>
-      isDay
+      isDay || isMonth
         ? filtered.filter((e) => isSameDay(e.lastVisitTime, selectedDay))
         : filtered,
-    [isDay, filtered, selectedDay],
+    [isDay, isMonth, filtered, selectedDay],
   );
 
   const weekStart = useMemo(() => startOfWeek(selectedDay), [selectedDay]);
@@ -58,7 +64,19 @@ export default function App() {
     [isWeek, filtered, weekStart],
   );
 
-  const viewEntries = isDay ? dayEntries : isWeek ? weekEntries : filtered;
+  const monthStart = useMemo(() => startOfMonth(selectedDay), [selectedDay]);
+  const monthEntries = useMemo(
+    () =>
+      isMonth
+        ? filtered.filter((e) => isSameMonth(e.lastVisitTime, monthStart))
+        : filtered,
+    [isMonth, filtered, monthStart],
+  );
+
+  // Month view scopes the sidebar to the selected day so the charts + top
+  // domains tell a "this day" story while the grid shows month context.
+  const viewEntries =
+    isDay || isMonth ? dayEntries : isWeek ? weekEntries : filtered;
 
   // Use calendar-day arithmetic so the window lands on the next local midnight
   // even across DST transitions (adding MS_PER_DAY to a midnight Date drifts ±1h).
@@ -70,8 +88,9 @@ export default function App() {
     () => addDays(weekStart, 7).getTime(),
     [weekStart],
   );
-  const visitWindow = isDay ? 1 : isWeek ? 7 : DAYS;
-  const visitNowMs = isDay ? dayEndMs : isWeek ? weekEndMs : undefined;
+  const dayScoped = isDay || isMonth;
+  const visitWindow = dayScoped ? 1 : isWeek ? 7 : DAYS;
+  const visitNowMs = dayScoped ? dayEndMs : isWeek ? weekEndMs : undefined;
   const { counts: transitions } = useVisits(
     viewEntries,
     visitWindow,
@@ -80,12 +99,12 @@ export default function App() {
 
   const buckets = useMemo(
     () =>
-      isDay
+      dayScoped
         ? bucketByHour(dayEntries, selectedDay)
         : isWeek
           ? bucketByDay(weekEntries, 7, addDays(weekStart, 6))
           : bucketByDay(filtered, 12),
-    [isDay, isWeek, dayEntries, weekEntries, filtered, selectedDay, weekStart],
+    [dayScoped, isWeek, dayEntries, weekEntries, filtered, selectedDay, weekStart],
   );
 
   const { list: domains, totalDomains } = useMemo(
@@ -98,35 +117,48 @@ export default function App() {
     if (isWeek) {
       return `${formatShortDate(weekStart)} – ${formatShortDate(addDays(weekStart, 6))}`;
     }
+    if (isMonth) return monthLabel(selectedDay);
     const end = startOfToday();
     const start = new Date(end);
     start.setDate(end.getDate() - (DAYS - 1));
     return `${formatShortDate(start)} – ${formatShortDate(end)}`;
-  }, [isDay, isWeek, selectedDay, weekStart]);
+  }, [isDay, isWeek, isMonth, selectedDay, weekStart]);
 
-  const activityTitle = isDay ? "Hourly Activity" : "Browsing Activity";
+  const activityTitle = dayScoped ? "Hourly Activity" : "Browsing Activity";
 
-  const isOnToday = isDay && isSameDay(selectedDay, startOfToday());
-  const isOnThisWeek = isWeek && isSameWeek(selectedDay, startOfToday());
+  const today = startOfToday();
+  const isOnToday = isSameDay(selectedDay, today);
+  const isOnThisWeek = isSameWeek(selectedDay, today);
+  const isOnThisMonth = isSameMonth(selectedDay, today);
   const onPrev = isDay
     ? () => setSelectedDay((d) => addDays(d, -1))
     : isWeek
       ? () => setSelectedDay((d) => addDays(d, -7))
-      : undefined;
+      : isMonth
+        ? () => setSelectedDay((d) => addMonths(d, -1))
+        : undefined;
   const onNext = isDay
     ? () => setSelectedDay((d) => addDays(d, 1))
     : isWeek
       ? () => setSelectedDay((d) => addDays(d, 7))
-      : undefined;
+      : isMonth
+        ? () => setSelectedDay((d) => addMonths(d, 1))
+        : undefined;
   const onToday =
-    (isDay && !isOnToday) || (isWeek && !isOnThisWeek)
-      ? () => setSelectedDay(startOfToday())
+    (isDay && !isOnToday) ||
+    (isWeek && !isOnThisWeek) ||
+    (isMonth && !isOnToday)
+      ? () => setSelectedDay(today)
       : undefined;
   const canGoNext = isDay
     ? !isOnToday
     : isWeek
       ? !isOnThisWeek
-      : true;
+      : isMonth
+        ? !isOnThisMonth
+        : true;
+
+  const hideColumnHeader = isWeek || isMonth;
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -146,12 +178,26 @@ export default function App() {
           <section
             className={cn(
               "grid min-h-0 border-r border-line-0 bg-bg-0",
-              isWeek ? "grid-rows-[1fr]" : "grid-rows-[32px_1fr]",
+              hideColumnHeader ? "grid-rows-[1fr]" : "grid-rows-[32px_1fr]",
             )}
           >
-            {!isWeek && <ColumnHeader />}
-            <div className="scroll-track overflow-y-auto overflow-x-hidden">
-              {isWeek ? (
+            {!hideColumnHeader && <ColumnHeader />}
+            <div
+              className={cn(
+                "overflow-x-hidden",
+                isMonth ? "overflow-hidden" : "scroll-track overflow-y-auto",
+              )}
+            >
+              {isMonth ? (
+                <MonthView
+                  entries={monthEntries}
+                  loading={loading}
+                  query={debouncedQuery}
+                  monthStart={monthStart}
+                  selectedDay={selectedDay}
+                  onSelectDay={setSelectedDay}
+                />
+              ) : isWeek ? (
                 <WeekView
                   entries={weekEntries}
                   loading={loading}
@@ -181,6 +227,8 @@ export default function App() {
             domains={domains}
             totalDomains={totalDomains}
             activityTitle={activityTitle}
+            entriesForDay={isMonth ? dayEntries : undefined}
+            entriesDayLabel={isMonth ? formatDateLong(selectedDay) : undefined}
           />
         </div>
       </div>
