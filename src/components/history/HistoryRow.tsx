@@ -1,7 +1,8 @@
-import { memo } from "react";
+import { memo, type KeyboardEvent, type MouseEvent } from "react";
 import { FavBadge } from "./FavBadge";
 import { formatTime } from "@/lib/date";
 import { cn } from "@/lib/utils";
+import { useChromeApi } from "@/components/ChromeProvider";
 import type { HistoryEntry } from "@/lib/types";
 
 const MAX_URL = 56;
@@ -10,12 +11,30 @@ function truncate(url: string): string {
 }
 
 function HistoryRowImpl({ entry }: { entry: HistoryEntry }) {
+  const api = useChromeApi();
   const hot = entry.visitCount >= 3;
+
+  function handleClick(e: MouseEvent<HTMLAnchorElement>) {
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+    e.preventDefault();
+    api.tabs.create({ url: entry.url, active: true });
+  }
+
+  function handleKeyDown(e: KeyboardEvent<HTMLAnchorElement>) {
+    if (e.key === " ") {
+      e.preventDefault();
+      api.tabs.create({ url: entry.url, active: true });
+    }
+  }
+
   return (
-    <div
+    <a
+      href={entry.url}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
       className={cn(
         "grid h-[34px] grid-cols-[120px_1fr_340px_80px] items-center gap-0 border-b border-transparent px-4 text-[13px] text-fg-1",
-        "hover:bg-bg-hover",
+        "cursor-pointer no-underline hover:bg-bg-hover",
       )}
     >
       <div className="font-mono tabular text-[12px] tracking-[0.3px] text-fg-2">
@@ -45,7 +64,7 @@ function HistoryRowImpl({ entry }: { entry: HistoryEntry }) {
           {entry.visitCount}
         </span>
       </div>
-    </div>
+    </a>
   );
 }
 

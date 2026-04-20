@@ -10,6 +10,7 @@ export interface FakeChromeOptions {
   extensionId?: string | null;
   searchDelayMs?: number;
   getVisitsDelayMs?: number;
+  tabsCreate?: (q: { url: string; active: boolean }) => Promise<void>;
 }
 
 export function createFakeChromeApi(opts: FakeChromeOptions = {}): ChromeApi {
@@ -25,6 +26,9 @@ export function createFakeChromeApi(opts: FakeChromeOptions = {}): ChromeApi {
         await delay(opts.getVisitsDelayMs);
         return visitsByUrl[url] ?? [];
       },
+    },
+    tabs: {
+      create: opts.tabsCreate ?? (() => Promise.resolve()),
     },
     runtime: {
       getExtensionId: () => extensionId,

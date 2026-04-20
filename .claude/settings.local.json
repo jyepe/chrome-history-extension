@@ -17,7 +17,10 @@
       "Bash(npx shadcn@latest *)",
       "Bash(echo \"EXIT_CODE: $?\")",
       "Bash(node scripts/gen-placeholder-icons.mjs)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(npx vitest *)",
+      "Bash(C:\\\\Users\\\\yepej\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\5.0.7\\\\scripts\\\\start-server.sh *)",
+      "Bash(C:/Users/yepej/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/skills/brainstorming/scripts/start-server.sh *)"
     ]
   }
 }

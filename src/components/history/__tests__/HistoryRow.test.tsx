@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { ChromeProvider } from "@/components/ChromeProvider";
 import { createFakeChromeApi } from "@/lib/__tests__/test-chrome";
 import { HistoryRow } from "@/components/history/HistoryRow";
@@ -19,9 +20,11 @@ const entry: HistoryEntry = {
     "anthropics/claude-sdk\nhttps://github.com/anthropics/claude-sdk\ngithub.com",
 };
 
-const renderRow = (e: HistoryEntry) =>
+type TabsCreate = (q: { url: string; active: boolean }) => Promise<void>;
+
+const renderRow = (e: HistoryEntry, tabsCreate?: TabsCreate) =>
   render(
-    <ChromeProvider api={createFakeChromeApi()}>
+    <ChromeProvider api={createFakeChromeApi({ tabsCreate })}>
       <HistoryRow entry={e} />
     </ChromeProvider>,
   );
@@ -46,5 +49,48 @@ describe("HistoryRow", () => {
     const { container } = renderRow(entry);
     const badge = container.querySelector('[data-hot="false"]');
     expect(badge).not.toBeNull();
+  });
+
+  it("renders as a link with the entry URL", () => {
+    renderRow(entry);
+    const link = screen.getByRole("link");
+    expect(link).toHaveAttribute("href", entry.url);
+  });
+
+  it("left-click opens the URL in a new tab via chrome.tabs.create", async () => {
+    const tabsCreate = vi.fn().mockResolvedValue(undefined);
+    renderRow(entry, tabsCreate);
+    await userEvent.click(screen.getByRole("link"));
+    expect(tabsCreate).toHaveBeenCalledWith({ url: entry.url, active: true });
+  });
+
+  it("ctrl+click lets the browser handle navigation without calling tabs.create", () => {
+    const tabsCreate = vi.fn().mockResolvedValue(undefined);
+    renderRow(entry, tabsCreate);
+    fireEvent.click(screen.getByRole("link"), { ctrlKey: true });
+    expect(tabsCreate).not.toHaveBeenCalled();
+  });
+
+  it("meta+click lets the browser handle navigation without calling tabs.create", () => {
+    const tabsCreate = vi.fn().mockResolvedValue(undefined);
+    renderRow(entry, tabsCreate);
+    fireEvent.click(screen.getByRole("link"), { metaKey: true });
+    expect(tabsCreate).not.toHaveBeenCalled();
+  });
+
+  it("Enter key opens the URL in a new tab", async () => {
+    const tabsCreate = vi.fn().mockResolvedValue(undefined);
+    renderRow(entry, tabsCreate);
+    screen.getByRole("link").focus();
+    await userEvent.keyboard("{Enter}");
+    expect(tabsCreate).toHaveBeenCalledWith({ url: entry.url, active: true });
+  });
+
+  it("Space key opens the URL in a new tab", async () => {
+    const tabsCreate = vi.fn().mockResolvedValue(undefined);
+    renderRow(entry, tabsCreate);
+    screen.getByRole("link").focus();
+    await userEvent.keyboard(" ");
+    expect(tabsCreate).toHaveBeenCalledWith({ url: entry.url, active: true });
   });
 });

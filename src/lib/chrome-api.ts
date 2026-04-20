@@ -26,6 +26,9 @@ export interface ChromeApi {
     search(q: ChromeHistorySearchQuery): Promise<ChromeHistoryItem[]>;
     getVisits(q: { url: string }): Promise<ChromeVisitItem[]>;
   };
+  tabs: {
+    create(q: { url: string; active: boolean }): Promise<void>;
+  };
   runtime: {
     getExtensionId(): string | null;
   };
@@ -50,6 +53,9 @@ export const realChromeApi: ChromeApi = {
           resolve(items as ChromeVisitItem[]),
         );
       }),
+  },
+  tabs: {
+    create: (q) => chrome.tabs.create(q).then(() => undefined),
   },
   runtime: {
     getExtensionId: () => {
