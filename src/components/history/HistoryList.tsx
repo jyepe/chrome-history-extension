@@ -32,7 +32,8 @@ export function HistoryList({ entries, loading, query }: HistoryListProps) {
   const toggleDay = useCallback((key: string) => {
     setCollapsedDays((prev) => {
       const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   }, []);
@@ -119,7 +120,7 @@ export function HistoryList({ entries, loading, query }: HistoryListProps) {
           type="button"
           aria-expanded={!allCollapsed}
           onClick={allCollapsed ? expandAll : collapseAll}
-          className="text-[12px] text-fg-2 hover:text-fg-0 transition-colors"
+          className="text-[12px] text-fg-2 hover:text-fg-0 transition-colors cursor-pointer"
         >
           {allCollapsed ? "Expand all" : "Collapse all"}
         </button>
