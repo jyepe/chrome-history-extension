@@ -1,121 +1,66 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useMemo, useState } from 'react'
+import { Topbar } from '@/components/history/Topbar'
+import { ColumnHeader } from '@/components/history/ColumnHeader'
+import { HistoryList } from '@/components/history/HistoryList'
+import { Sidebar } from '@/components/history/Sidebar'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { useHistory } from '@/hooks/useHistory'
+import { useVisits } from '@/hooks/useVisits'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { bucketByDay, formatShortDate, startOfToday } from '@/lib/date'
+import { filterEntries } from '@/lib/search'
+import { topDomains } from '@/lib/topDomains'
+import type { ViewId } from '@/components/history/ViewSegment'
 
-function App() {
-  const [count, setCount] = useState(0)
+const DAYS = 30
+
+export default function App() {
+  const { entries, loading } = useHistory(DAYS)
+  const [query, setQuery] = useState('')
+  const [view, setView] = useState<ViewId>('list')
+  const debouncedQuery = useDebouncedValue(query, 150)
+  const filtered = useMemo(() => filterEntries(entries, debouncedQuery), [entries, debouncedQuery])
+  const { counts: transitions } = useVisits(entries, DAYS)
+
+  const buckets = useMemo(() => bucketByDay(filtered, 12), [filtered])
+  const { list: domains, totalDomains } = useMemo(
+    () => topDomains(filtered, 6),
+    [filtered],
+  )
+
+  const rangeLabel = useMemo(() => {
+    const end = startOfToday()
+    const start = new Date(end)
+    start.setDate(end.getDate() - (DAYS - 1))
+    return `${formatShortDate(start)} – ${formatShortDate(end)}`
+  }, [])
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <TooltipProvider delayDuration={150}>
+      <div className="grid h-screen w-screen grid-rows-[48px_1fr]">
+        <Topbar
+          query={query}
+          onQueryChange={setQuery}
+          view={view}
+          onViewChange={setView}
+          rangeLabel={rangeLabel}
+        />
+        <div className="grid min-h-0 grid-cols-[1fr_340px]">
+          <section className="grid min-h-0 grid-rows-[32px_1fr] border-r border-line-0 bg-bg-0">
+            <ColumnHeader />
+            <div className="scroll-track overflow-y-auto overflow-x-hidden">
+              <HistoryList entries={filtered} loading={loading} query={debouncedQuery} />
+            </div>
+          </section>
+          <Sidebar
+            rangeLabel={rangeLabel}
+            buckets={buckets}
+            transitions={transitions}
+            domains={domains}
+            totalDomains={totalDomains}
+          />
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      </div>
+    </TooltipProvider>
   )
 }
-
-export default App
