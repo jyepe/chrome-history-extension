@@ -27,6 +27,14 @@ export interface HourGroup {
   totalViews: number;
 }
 
+export interface WeekdayBucket {
+  date: Date;
+  weekdayShort: string;
+  monthShort: string;
+  entries: HistoryEntry[];
+  totalViews: number;
+}
+
 export interface ActivityBucket {
   date: Date;
   label: string;
