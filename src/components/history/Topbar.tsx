@@ -68,7 +68,7 @@ export function Topbar({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7"
+            className="h-7 w-7 cursor-pointer"
             aria-label="Previous"
             onClick={onPrev}
             disabled={prevDisabled}
@@ -78,7 +78,7 @@ export function Topbar({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7"
+            className="h-7 w-7 cursor-pointer"
             aria-label="Next"
             onClick={onNext}
             disabled={nextDisabled}
@@ -90,7 +90,7 @@ export function Topbar({
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7"
+          className="h-7 w-7 cursor-pointer"
           aria-label="Tweaks"
           disabled
         >
@@ -99,7 +99,7 @@ export function Topbar({
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7"
+          className="h-7 w-7 cursor-pointer"
           aria-label="Info"
           disabled
         >
