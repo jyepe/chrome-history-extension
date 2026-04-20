@@ -90,3 +90,39 @@ describe("HistoryList — collapse per day", () => {
     expect(screen.getByText("Beta Page")).toBeInTheDocument();
   });
 });
+
+describe("HistoryList — collapse all / expand all", () => {
+  const monday = new Date(2026, 3, 14, 10);
+  const sunday = new Date(2026, 3, 13, 15);
+
+  const entries = [
+    e("alpha", monday, "Alpha Page"),
+    e("gamma", sunday, "Gamma Page"),
+  ];
+
+  it("renders a 'Collapse all' button", () => {
+    wrap(<HistoryList entries={entries} loading={false} query="" />);
+    expect(screen.getByRole("button", { name: "Collapse all" })).toBeInTheDocument();
+  });
+
+  it("hides all rows after clicking 'Collapse all'", async () => {
+    wrap(<HistoryList entries={entries} loading={false} query="" />);
+    await userEvent.click(screen.getByRole("button", { name: "Collapse all" }));
+    expect(screen.queryByText("Alpha Page")).not.toBeInTheDocument();
+    expect(screen.queryByText("Gamma Page")).not.toBeInTheDocument();
+  });
+
+  it("shows 'Expand all' after collapsing all", async () => {
+    wrap(<HistoryList entries={entries} loading={false} query="" />);
+    await userEvent.click(screen.getByRole("button", { name: "Collapse all" }));
+    expect(screen.getByRole("button", { name: "Expand all" })).toBeInTheDocument();
+  });
+
+  it("restores all rows after clicking 'Expand all'", async () => {
+    wrap(<HistoryList entries={entries} loading={false} query="" />);
+    await userEvent.click(screen.getByRole("button", { name: "Collapse all" }));
+    await userEvent.click(screen.getByRole("button", { name: "Expand all" }));
+    expect(screen.getByText("Alpha Page")).toBeInTheDocument();
+    expect(screen.getByText("Gamma Page")).toBeInTheDocument();
+  });
+});

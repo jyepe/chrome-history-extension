@@ -37,6 +37,17 @@ export function HistoryList({ entries, loading, query }: HistoryListProps) {
     });
   }, []);
 
+  const allCollapsed =
+    groups.length > 0 && collapsedDays.size === groups.length;
+
+  function collapseAll() {
+    setCollapsedDays(new Set(groups.map((g) => g.date.toDateString())));
+  }
+
+  function expandAll() {
+    setCollapsedDays(new Set());
+  }
+
   const items = useMemo<VirtualRow[]>(() => {
     const list: VirtualRow[] = [];
     for (const g of groups) {
@@ -101,49 +112,60 @@ export function HistoryList({ entries, loading, query }: HistoryListProps) {
   const activeStickyIndex = activeStickyIndexRef.current;
 
   return (
-    <div
-      ref={parentRef}
-      className="scroll-track h-full overflow-x-hidden overflow-y-auto"
-    >
+    <div className="flex h-full flex-col">
+      <div className="flex h-[36px] items-center justify-end border-b border-line-0 bg-bg-1 px-4">
+        <button
+          type="button"
+          onClick={allCollapsed ? expandAll : collapseAll}
+          className="text-[12px] text-fg-2 hover:text-fg-0 transition-colors"
+        >
+          {allCollapsed ? "Expand all" : "Collapse all"}
+        </button>
+      </div>
       <div
-        style={{
-          height: virtualizer.getTotalSize(),
-          position: "relative",
-          width: "100%",
-        }}
+        ref={parentRef}
+        className="scroll-track flex-1 overflow-x-hidden overflow-y-auto"
       >
-        {virtualItems.map((v) => {
-          const item = items[v.index];
-          const sticky = v.index === activeStickyIndex && isHeader(v.index);
-          const style: React.CSSProperties = sticky
-            ? {
-                position: "sticky",
-                top: 0,
-                left: 0,
-                right: 0,
-                zIndex: 2,
-              }
-            : {
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                transform: `translateY(${v.start}px)`,
-              };
-          return (
-            <div key={v.key} data-index={v.index} style={style}>
-              {item.kind === "header" ? (
-                <DayHeader
-                  group={item.group}
-                  collapsed={item.collapsed}
-                  onToggle={() => toggleDay(item.group.date.toDateString())}
-                />
-              ) : (
-                <HistoryRow entry={item.entry} />
-              )}
-            </div>
-          );
-        })}
+        <div
+          style={{
+            height: virtualizer.getTotalSize(),
+            position: "relative",
+            width: "100%",
+          }}
+        >
+          {virtualItems.map((v) => {
+            const item = items[v.index];
+            const sticky = v.index === activeStickyIndex && isHeader(v.index);
+            const style: React.CSSProperties = sticky
+              ? {
+                  position: "sticky",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  zIndex: 2,
+                }
+              : {
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  transform: `translateY(${v.start}px)`,
+                };
+            return (
+              <div key={v.key} data-index={v.index} style={style}>
+                {item.kind === "header" ? (
+                  <DayHeader
+                    group={item.group}
+                    collapsed={item.collapsed}
+                    onToggle={() => toggleDay(item.group.date.toDateString())}
+                  />
+                ) : (
+                  <HistoryRow entry={item.entry} />
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
