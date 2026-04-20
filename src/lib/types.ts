@@ -20,6 +20,13 @@ export interface DayGroup {
   totalViews: number;
 }
 
+export interface HourGroup {
+  hour: number;
+  date: Date;
+  entries: HistoryEntry[];
+  totalViews: number;
+}
+
 export interface ActivityBucket {
   date: Date;
   label: string;

@@ -23,12 +23,12 @@ describe("ViewSegment", () => {
     expect(screen.getByRole("radio", { name: "Month" })).toBeInTheDocument();
   });
 
-  it("disables Day/Week/Month options", () => {
+  it("disables Week/Month options but enables List/Day", () => {
     renderSeg("list");
-    expect(screen.getByRole("radio", { name: "Day" })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: "List" })).not.toBeDisabled();
+    expect(screen.getByRole("radio", { name: "Day" })).not.toBeDisabled();
     expect(screen.getByRole("radio", { name: "Week" })).toBeDisabled();
     expect(screen.getByRole("radio", { name: "Month" })).toBeDisabled();
-    expect(screen.getByRole("radio", { name: "List" })).not.toBeDisabled();
   });
 
   it("does not fire onChange when a disabled option is clicked", async () => {
@@ -36,5 +36,12 @@ describe("ViewSegment", () => {
     renderSeg("list", onChange);
     await userEvent.click(screen.getByRole("radio", { name: "Week" }));
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("fires onChange('day') when Day is clicked", async () => {
+    const onChange = vi.fn();
+    renderSeg("list", onChange);
+    await userEvent.click(screen.getByRole("radio", { name: "Day" }));
+    expect(onChange).toHaveBeenCalledWith("day");
   });
 });

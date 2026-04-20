@@ -16,6 +16,10 @@ export interface TopbarProps {
   view: ViewId;
   onViewChange: (next: ViewId) => void;
   rangeLabel: string;
+  onPrev?: () => void;
+  onNext?: () => void;
+  onToday?: () => void;
+  canGoNext?: boolean;
 }
 
 export function Topbar({
@@ -24,7 +28,14 @@ export function Topbar({
   view,
   onViewChange,
   rangeLabel,
+  onPrev,
+  onNext,
+  onToday,
+  canGoNext = true,
 }: TopbarProps) {
+  const prevDisabled = !onPrev;
+  const nextDisabled = !onNext || !canGoNext;
+  const todayDisabled = !onToday;
   return (
     <header className="grid h-12 grid-cols-[1fr_auto_1fr] items-center gap-4 border-b border-line-0 bg-[linear-gradient(180deg,var(--color-bg-1),var(--color-bg-0))] px-[14px]">
       <div className="flex items-center gap-[10px]">
@@ -46,7 +57,9 @@ export function Topbar({
       <div className="flex items-center justify-end gap-[10px]">
         <button
           type="button"
-          className="flex h-[26px] items-center gap-[6px] rounded-full border border-line-0 bg-bg-2 px-3 text-[12px] font-medium text-fg-1 hover:bg-bg-hover hover:text-fg-0"
+          onClick={onToday}
+          disabled={todayDisabled}
+          className="flex h-[26px] items-center gap-[6px] rounded-full border border-line-0 bg-bg-2 px-3 text-[12px] font-medium text-fg-1 hover:bg-bg-hover hover:text-fg-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-bg-2 disabled:hover:text-fg-1"
         >
           <Calendar size={12} strokeWidth={1.5} />
           Today
@@ -57,6 +70,8 @@ export function Topbar({
             size="icon"
             className="h-7 w-7"
             aria-label="Previous"
+            onClick={onPrev}
+            disabled={prevDisabled}
           >
             <ChevronLeft size={14} strokeWidth={1.5} />
           </Button>
@@ -65,6 +80,8 @@ export function Topbar({
             size="icon"
             className="h-7 w-7"
             aria-label="Next"
+            onClick={onNext}
+            disabled={nextDisabled}
           >
             <ChevronRight size={14} strokeWidth={1.5} />
           </Button>

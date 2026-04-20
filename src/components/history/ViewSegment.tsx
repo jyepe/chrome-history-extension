@@ -16,7 +16,7 @@ interface Option {
 
 const OPTIONS: Option[] = [
   { id: "list", label: "List", disabled: false },
-  { id: "day", label: "Day", disabled: true },
+  { id: "day", label: "Day", disabled: false },
   { id: "week", label: "Week", disabled: true },
   { id: "month", label: "Month", disabled: true },
 ];

@@ -1,4 +1,9 @@
-import type { ActivityBucket, DayGroup, HistoryEntry } from "./types";
+import type {
+  ActivityBucket,
+  DayGroup,
+  HistoryEntry,
+  HourGroup,
+} from "./types";
 
 const WEEKDAYS = [
   "Sunday",
@@ -60,6 +65,32 @@ export function startOfToday(): Date {
   return startOfDay(new Date());
 }
 
+export function startOfHour(d: Date): Date {
+  return new Date(
+    d.getFullYear(),
+    d.getMonth(),
+    d.getDate(),
+    d.getHours(),
+    0,
+    0,
+    0,
+  );
+}
+
+export function isSameDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+export function addDays(d: Date, n: number): Date {
+  const result = startOfDay(d);
+  result.setDate(result.getDate() + n);
+  return result;
+}
+
 function dayKey(d: Date): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
@@ -78,6 +109,59 @@ export function groupByDay(entries: readonly HistoryEntry[]): DayGroup[] {
     group.totalViews += e.visitCount;
   }
   return [...map.values()].sort((a, b) => b.date.getTime() - a.date.getTime());
+}
+
+export function groupByHour(entries: readonly HistoryEntry[]): HourGroup[] {
+  const map = new Map<number, HourGroup>();
+  for (const e of entries) {
+    const hourDate = startOfHour(e.lastVisitTime);
+    const key = hourDate.getTime();
+    let group = map.get(key);
+    if (!group) {
+      group = {
+        hour: hourDate.getHours(),
+        date: hourDate,
+        entries: [],
+        totalViews: 0,
+      };
+      map.set(key, group);
+    }
+    group.entries.push(e);
+    group.totalViews += e.visitCount;
+  }
+  return [...map.values()].sort((a, b) => b.date.getTime() - a.date.getTime());
+}
+
+export function bucketByHour(
+  entries: readonly HistoryEntry[],
+  dayStart: Date,
+): ActivityBucket[] {
+  const start = startOfDay(dayStart);
+  const buckets: ActivityBucket[] = [];
+  for (let h = 0; h < 24; h++) {
+    const d = new Date(
+      start.getFullYear(),
+      start.getMonth(),
+      start.getDate(),
+      h,
+      0,
+      0,
+      0,
+    );
+    buckets.push({
+      date: d,
+      label: pad(h),
+      pages: 0,
+      views: 0,
+    });
+  }
+  for (const e of entries) {
+    if (!isSameDay(e.lastVisitTime, start)) continue;
+    const h = e.lastVisitTime.getHours();
+    buckets[h].pages += 1;
+    buckets[h].views += e.visitCount;
+  }
+  return buckets;
 }
 
 export function bucketByDay(

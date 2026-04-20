@@ -5,8 +5,13 @@ import {
   formatShortDate,
   startOfDay,
   startOfToday,
+  startOfHour,
+  isSameDay,
+  addDays,
   groupByDay,
+  groupByHour,
   bucketByDay,
+  bucketByHour,
 } from "@/lib/date";
 import type { HistoryEntry } from "@/lib/types";
 
@@ -77,6 +82,94 @@ describe("groupByDay", () => {
   });
   it("returns an empty array for no entries", () => {
     expect(groupByDay([])).toEqual([]);
+  });
+});
+
+describe("startOfHour", () => {
+  it("zeroes minutes/seconds/ms but keeps the hour", () => {
+    const h = startOfHour(new Date(2026, 3, 14, 17, 30, 45, 123));
+    expect(h.getHours()).toBe(17);
+    expect(h.getMinutes()).toBe(0);
+    expect(h.getSeconds()).toBe(0);
+    expect(h.getMilliseconds()).toBe(0);
+  });
+});
+
+describe("isSameDay", () => {
+  it("is true for times on the same local calendar day", () => {
+    expect(
+      isSameDay(new Date(2026, 3, 14, 0, 1), new Date(2026, 3, 14, 23, 59)),
+    ).toBe(true);
+  });
+  it("is false for times that differ in day/month/year", () => {
+    expect(isSameDay(new Date(2026, 3, 14), new Date(2026, 3, 15))).toBe(false);
+    expect(isSameDay(new Date(2026, 3, 14), new Date(2026, 4, 14))).toBe(false);
+    expect(isSameDay(new Date(2026, 3, 14), new Date(2027, 3, 14))).toBe(false);
+  });
+});
+
+describe("addDays", () => {
+  it("shifts by n days and returns start-of-day", () => {
+    const d = addDays(new Date(2026, 3, 14, 15, 30), 1);
+    expect(d.getFullYear()).toBe(2026);
+    expect(d.getMonth()).toBe(3);
+    expect(d.getDate()).toBe(15);
+    expect(d.getHours()).toBe(0);
+  });
+  it("handles negative n and month boundaries", () => {
+    const d = addDays(new Date(2026, 4, 1), -1);
+    expect(d.getMonth()).toBe(3);
+    expect(d.getDate()).toBe(30);
+  });
+});
+
+describe("groupByHour", () => {
+  it("groups entries by local hour, descending", () => {
+    const entries = [
+      entry("2026-04-14T10:10:00", 2),
+      entry("2026-04-14T10:50:00", 3),
+      entry("2026-04-14T09:30:00", 1),
+    ];
+    const groups = groupByHour(entries);
+    expect(groups).toHaveLength(2);
+    expect(groups[0].hour).toBe(10);
+    expect(groups[0].totalViews).toBe(5);
+    expect(groups[0].entries).toHaveLength(2);
+    expect(groups[1].hour).toBe(9);
+    expect(groups[1].totalViews).toBe(1);
+  });
+  it("returns an empty array for no entries", () => {
+    expect(groupByHour([])).toEqual([]);
+  });
+});
+
+describe("bucketByHour", () => {
+  it("produces 24 hourly buckets labelled 00..23", () => {
+    const buckets = bucketByHour([], startOfDay(new Date(2026, 3, 14)));
+    expect(buckets).toHaveLength(24);
+    expect(buckets[0].label).toBe("00");
+    expect(buckets[9].label).toBe("09");
+    expect(buckets[23].label).toBe("23");
+    for (const b of buckets) {
+      expect(b.pages).toBe(0);
+      expect(b.views).toBe(0);
+    }
+  });
+  it("counts pages/views only from entries on the matching day", () => {
+    const dayStart = startOfDay(new Date(2026, 3, 14));
+    const entries = [
+      entry("2026-04-14T10:10:00", 3),
+      entry("2026-04-14T10:50:00", 2),
+      entry("2026-04-14T11:00:00", 1),
+      entry("2026-04-13T10:00:00", 7), // different day — excluded
+    ];
+    const buckets = bucketByHour(entries, dayStart);
+    expect(buckets[10].pages).toBe(2);
+    expect(buckets[10].views).toBe(5);
+    expect(buckets[11].pages).toBe(1);
+    expect(buckets[11].views).toBe(1);
+    expect(buckets[9].pages).toBe(0);
+    expect(buckets[9].views).toBe(0);
   });
 });
 

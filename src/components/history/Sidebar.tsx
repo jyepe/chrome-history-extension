@@ -9,6 +9,7 @@ export interface SidebarProps {
   transitions: TransitionCounts;
   domains: TopDomain[];
   totalDomains: number;
+  activityTitle?: string;
 }
 
 export function Sidebar({
@@ -17,6 +18,7 @@ export function Sidebar({
   transitions,
   domains,
   totalDomains,
+  activityTitle = "Browsing Activity",
 }: SidebarProps) {
   return (
     <aside className="scroll-track flex flex-col gap-6 overflow-y-auto bg-bg-0 px-[18px] pb-6 pt-4">
@@ -26,7 +28,7 @@ export function Sidebar({
 
       <section>
         <h3 className="mb-3 text-[13px] font-semibold tracking-[0.1px] text-fg-0">
-          Browsing Activity
+          {activityTitle}
         </h3>
         <ActivityChart buckets={buckets} />
       </section>
