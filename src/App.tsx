@@ -15,7 +15,6 @@ import {
   formatDateLong,
   formatShortDate,
   isSameDay,
-  startOfDay,
   startOfToday,
 } from "@/lib/date";
 import { filterEntries } from "@/lib/search";
@@ -23,7 +22,6 @@ import { topDomains } from "@/lib/topDomains";
 import type { ViewId } from "@/components/history/ViewSegment";
 
 const DAYS = 30;
-const MS_PER_DAY = 86_400_000;
 
 export default function App() {
   const { entries, loading } = useHistory(DAYS);
@@ -48,8 +46,10 @@ export default function App() {
 
   const viewEntries = isDay ? dayEntries : filtered;
 
+  // Use calendar-day arithmetic so the window lands on the next local midnight
+  // even across DST transitions (adding MS_PER_DAY to a midnight Date drifts ±1h).
   const dayEndMs = useMemo(
-    () => startOfDay(selectedDay).getTime() + MS_PER_DAY,
+    () => addDays(selectedDay, 1).getTime(),
     [selectedDay],
   );
   const { counts: transitions } = useVisits(
@@ -81,14 +81,16 @@ export default function App() {
 
   const activityTitle = isDay ? "Hourly Activity" : "Browsing Activity";
 
+  const isOnToday = isDay && isSameDay(selectedDay, startOfToday());
   const onPrev = isDay
     ? () => setSelectedDay((d) => addDays(d, -1))
     : undefined;
   const onNext = isDay
     ? () => setSelectedDay((d) => addDays(d, 1))
     : undefined;
-  const onToday = isDay ? () => setSelectedDay(startOfToday()) : undefined;
-  const canGoNext = isDay ? !isSameDay(selectedDay, startOfToday()) : true;
+  const onToday =
+    isDay && !isOnToday ? () => setSelectedDay(startOfToday()) : undefined;
+  const canGoNext = isDay ? !isOnToday : true;
 
   return (
     <TooltipProvider delayDuration={150}>

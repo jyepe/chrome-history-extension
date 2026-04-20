@@ -24,6 +24,18 @@ const wrap = (ui: React.ReactNode) =>
 describe("DayView", () => {
   const selectedDay = new Date(2026, 3, 14);
 
+  it("renders a loading skeleton when loading and no entries", () => {
+    wrap(
+      <DayView
+        entries={[]}
+        loading
+        query=""
+        selectedDay={selectedDay}
+      />,
+    );
+    expect(screen.getByLabelText("Loading history")).toBeInTheDocument();
+  });
+
   it('renders the "no history on day" empty state when there are no entries', () => {
     wrap(
       <DayView
