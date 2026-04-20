@@ -23,6 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-History Extension-handoff
+# History Extension-handoff
 docs/
 .superpowers
