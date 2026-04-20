@@ -1,14 +1,14 @@
-import { ActivityChart } from './ActivityChart'
-import { TransitionDonut } from './TransitionDonut'
-import { TopDomains } from './TopDomains'
-import type { ActivityBucket, TopDomain, TransitionCounts } from '@/lib/types'
+import { ActivityChart } from "./ActivityChart";
+import { TransitionDonut } from "./TransitionDonut";
+import { TopDomains } from "./TopDomains";
+import type { ActivityBucket, TopDomain, TransitionCounts } from "@/lib/types";
 
 export interface SidebarProps {
-  rangeLabel: string
-  buckets: ActivityBucket[]
-  transitions: TransitionCounts
-  domains: TopDomain[]
-  totalDomains: number
+  rangeLabel: string;
+  buckets: ActivityBucket[];
+  transitions: TransitionCounts;
+  domains: TopDomain[];
+  totalDomains: number;
 }
 
 export function Sidebar({
@@ -40,5 +40,5 @@ export function Sidebar({
 
       <TopDomains list={domains} totalDomains={totalDomains} />
     </aside>
-  )
+  );
 }

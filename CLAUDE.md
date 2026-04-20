@@ -19,6 +19,7 @@ npm run preview      # Preview built output
 ```
 
 **Loading the extension during development:**
+
 1. Run `npm run dev` — CRXJS creates a `dist/` folder
 2. Go to `chrome://extensions` → Enable Developer Mode → Load Unpacked → select `dist/`
 3. Press `Ctrl+H` to open the overridden history page (HMR active)
@@ -29,13 +30,13 @@ This is a **full-page Chrome Extension override**, not a popup or content script
 
 ### Key Entry Points
 
-| File | Role |
-|---|---|
-| `manifest.json` | Extension config; CRXJS uses this as the Vite entry point |
-| `src/history.html` | HTML shell that replaces `chrome://history` (via `chrome_url_overrides`) |
-| `src/main.tsx` | React mounting script |
-| `src/App.tsx` | Root component; CSS grid layout (top bar + main content + right sidebar) |
-| `src/background.ts` | Manifest V3 Service Worker |
+| File                | Role                                                                     |
+| ------------------- | ------------------------------------------------------------------------ |
+| `manifest.json`     | Extension config; CRXJS uses this as the Vite entry point                |
+| `src/history.html`  | HTML shell that replaces `chrome://history` (via `chrome_url_overrides`) |
+| `src/main.tsx`      | React mounting script                                                    |
+| `src/App.tsx`       | Root component; CSS grid layout (top bar + main content + right sidebar) |
+| `src/background.ts` | Manifest V3 Service Worker                                               |
 
 ### Component Organization
 
@@ -57,20 +58,23 @@ src/lib/
 ### Build Configuration
 
 The project uses **`@crxjs/vite-plugin`** (beta) which:
+
 - Reads `manifest.json` as the Vite entry point
 - Handles multi-page extension output (history page + service worker)
 - Provides HMR during development
 
 **`vite.config.ts` must include:**
+
 ```ts
-import { crx } from '@crxjs/vite-plugin'
-import manifest from './manifest.json'
+import { crx } from "@crxjs/vite-plugin";
+import manifest from "./manifest.json";
 // plugins: [react(), crx({ manifest })]
 ```
 
 ### Data & Visualization
 
 Charts use **Recharts**. Data transformations before rendering:
+
 - Activity chart: group `visitCount` by day → `BarChart`
 - Transition types: tally `visit.transition` values → `PieChart`
 - Top domains: extract hostnames, count, sort

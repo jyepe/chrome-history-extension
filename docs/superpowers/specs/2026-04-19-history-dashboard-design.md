@@ -56,7 +56,7 @@ Ship the path a user sees every time they hit `Ctrl+H`: the List view plus full 
 
 ### Principles
 
-- **One chrome boundary.** Hooks in `src/hooks/` are the *only* place that calls `chrome.*`. Components receive typed props — pure render functions.
+- **One chrome boundary.** Hooks in `src/hooks/` are the _only_ place that calls `chrome.*`. Components receive typed props — pure render functions.
 - **Fetch once, derive everything.** Single `chrome.history.search` on mount feeds all sidebar analytics and the list. Search filters happen in-memory.
 - **Pure utilities.** `src/lib/` has no DOM or React imports; date math, domain parsing, transition bucketing are unit-testable.
 
@@ -104,25 +104,26 @@ src/
 
 ```ts
 chrome.history.search({
-  text: '',
+  text: "",
   startTime: Date.now() - days * 86_400_000,
   maxResults: 10_000,
-})
+});
 ```
 
 Normalizes `chrome.history.HistoryItem[]` → `HistoryEntry[]`:
+
 ```ts
 type HistoryEntry = {
-  id: string              // HistoryItem.id
-  url: string
-  title: string           // fallback: hostname if title is empty
-  host: string            // parsed from url
-  hostLetter: string      // first uppercase alnum of host, or '·' fallback
-  hostColor: string       // seeded oklch from hash(host)
-  lastVisitTime: Date     // HistoryItem.lastVisitTime → Date
-  visitCount: number      // HistoryItem.visitCount
-  typedCount: number
-}
+  id: string; // HistoryItem.id
+  url: string;
+  title: string; // fallback: hostname if title is empty
+  host: string; // parsed from url
+  hostLetter: string; // first uppercase alnum of host, or '·' fallback
+  hostColor: string; // seeded oklch from hash(host)
+  lastVisitTime: Date; // HistoryItem.lastVisitTime → Date
+  visitCount: number; // HistoryItem.visitCount
+  typedCount: number;
+};
 ```
 
 ### `useVisits(entries): { counts, loading }`
@@ -132,13 +133,13 @@ type HistoryEntry = {
 - Keep only visits whose `visitTime` falls inside the 30-day window.
 - Map each visit's `transition` via `lib/transitions.ts` into one of `typed | link | reload | form`:
 
-| Chrome `TransitionType`                                  | Bucket   |
-| -------------------------------------------------------- | -------- |
-| `typed`, `keyword`, `keyword_generated`                  | `typed`  |
+| Chrome `TransitionType`                                                  | Bucket   |
+| ------------------------------------------------------------------------ | -------- |
+| `typed`, `keyword`, `keyword_generated`                                  | `typed`  |
 | `link`, `auto_bookmark`, `manual_subframe`, `auto_subframe`, `generated` | `link`   |
-| `reload`                                                 | `reload` |
-| `form_submit`                                            | `form`   |
-| everything else (`start_page`, etc.)                     | `link`   |
+| `reload`                                                                 | `reload` |
+| `form_submit`                                                            | `form`   |
+| everything else (`start_page`, etc.)                                     | `link`   |
 
 Returns `{ typed, link, reload, form, total }`. Its loading state is independent from `useHistory`'s — the list renders immediately while the donut shows a skeleton.
 
@@ -152,22 +153,25 @@ Returns `{ typed, link, reload, form, total }`. Its loading state is independent
 ### Top-level state (in `App.tsx`)
 
 ```ts
-const { entries, loading, error, reload } = useHistory(30)
-const [query, setQuery] = useState('')
-const debouncedQuery = useDebouncedValue(query, 150)
-const filtered = useMemo(() => filterEntries(entries, debouncedQuery), [entries, debouncedQuery])
-const { counts: transitions, loading: txLoading } = useVisits(entries)
+const { entries, loading, error, reload } = useHistory(30);
+const [query, setQuery] = useState("");
+const debouncedQuery = useDebouncedValue(query, 150);
+const filtered = useMemo(
+  () => filterEntries(entries, debouncedQuery),
+  [entries, debouncedQuery],
+);
+const { counts: transitions, loading: txLoading } = useVisits(entries);
 ```
 
 ### States
 
-| Condition                                                | Main content                     | Sidebar                       |
-| -------------------------------------------------------- | -------------------------------- | ----------------------------- |
-| `loading && !entries.length`                             | `<ListSkeleton />`               | Chart skeletons               |
-| `error`                                                  | Error panel with Retry button    | Empty-state placeholders      |
-| `!loading && entries.length === 0`                       | `<EmptyState variant="none" />`  | "No data" placeholders        |
-| `entries.length > 0 && filtered.length === 0 && query`   | `<EmptyState variant="search" />`| Charts reflect **filtered**   |
-| happy path                                               | `<HistoryList groups={...} />`   | Charts reflect **filtered**   |
+| Condition                                              | Main content                      | Sidebar                     |
+| ------------------------------------------------------ | --------------------------------- | --------------------------- |
+| `loading && !entries.length`                           | `<ListSkeleton />`                | Chart skeletons             |
+| `error`                                                | Error panel with Retry button     | Empty-state placeholders    |
+| `!loading && entries.length === 0`                     | `<EmptyState variant="none" />`   | "No data" placeholders      |
+| `entries.length > 0 && filtered.length === 0 && query` | `<EmptyState variant="search" />` | Charts reflect **filtered** |
+| happy path                                             | `<HistoryList groups={...} />`    | Charts reflect **filtered** |
 
 Sidebar always mirrors the current filter so charts + top-domains respond to search.
 
@@ -175,23 +179,24 @@ Sidebar always mirrors the current filter so charts + top-domains respond to sea
 
 All tokens go into one `@theme inline` block in `src/index.css`, ported 1:1 from the mock's `:root`. Full list:
 
-| CSS token             | Purpose                            |
-| --------------------- | ---------------------------------- |
-| `--color-bg-0..3`     | background ladder, darkest → lighter |
-| `--color-bg-hover`    | row hover                          |
-| `--color-bg-row-alt`  | (unused this slice, kept for parity) |
-| `--color-line-0..1`   | borders                            |
-| `--color-fg-0..3`     | foreground ladder, brightest → dim |
-| `--color-amber/-dim`  | primary accent                     |
-| `--color-cyan / violet / coral / green` | secondary accents    |
-| `--color-chip / chip-fg` | pill chips                      |
-| `--font-sans` = Inter | body                               |
-| `--font-mono` = JetBrains Mono | tabular figures           |
-| `--shadow-sm / -md`   | elevations                         |
+| CSS token                               | Purpose                              |
+| --------------------------------------- | ------------------------------------ |
+| `--color-bg-0..3`                       | background ladder, darkest → lighter |
+| `--color-bg-hover`                      | row hover                            |
+| `--color-bg-row-alt`                    | (unused this slice, kept for parity) |
+| `--color-line-0..1`                     | borders                              |
+| `--color-fg-0..3`                       | foreground ladder, brightest → dim   |
+| `--color-amber/-dim`                    | primary accent                       |
+| `--color-cyan / violet / coral / green` | secondary accents                    |
+| `--color-chip / chip-fg`                | pill chips                           |
+| `--font-sans` = Inter                   | body                                 |
+| `--font-mono` = JetBrains Mono          | tabular figures                      |
+| `--shadow-sm / -md`                     | elevations                           |
 
 Tailwind v4 exposes these as `bg-bg-0`, `text-fg-0`, `border-line-0`, `text-amber`, `font-mono`, `shadow-sm`, etc.
 
 **shadcn bridge** — override shadcn's default tokens in `:root` so its Input / Button / Tooltip pick up our palette:
+
 ```css
 :root {
   --background: var(--color-bg-0);
@@ -209,23 +214,25 @@ Tailwind v4 exposes these as `bg-bg-0`, `text-fg-0`, `border-line-0`, `text-ambe
 ```
 
 **Fonts:**
+
 - Remove existing unused `@fontsource-variable/geist` dep + import.
 - Add `@fontsource-variable/inter` and `@fontsource-variable/jetbrains-mono`.
 - Import both from `main.tsx`.
 
 **Base styles (`@layer base`):**
+
 - `body { @apply bg-bg-0 text-fg-1 font-sans text-[13px] leading-[1.4] antialiased overflow-hidden; }`
 - Custom scrollbar styling (10px webkit scrollbar, `--color-line-1` thumb with `--color-bg-0` border) applied to `.list-scroll` and `.sidebar`.
 - `.tabular` utility class (`font-variant-numeric: tabular-nums`) in `@layer utilities` for mono columns.
 
 ## 6. shadcn components used
 
-| Component     | Where                                         |
-| ------------- | --------------------------------------------- |
-| `Button`      | all topbar icon buttons + Today chip (`variant="ghost" size="icon"` / custom chip variant) |
-| `Input`       | SearchInput                                   |
+| Component     | Where                                                                                                                                                                                                                                                                                     |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Button`      | all topbar icon buttons + Today chip (`variant="ghost" size="icon"` / custom chip variant)                                                                                                                                                                                                |
+| `Input`       | SearchInput                                                                                                                                                                                                                                                                               |
 | `Tooltip`     | "Coming soon" tooltips on disabled view segment items. (Recharts has its own `Tooltip` primitive used inside charts; our custom chart-tooltip content borrows the same design tokens — `bg-bg-3 border-line-1 text-fg-0 text-[11px] font-mono rounded-md` — but doesn't import shadcn's.) |
-| `ToggleGroup` | ViewSegment                                   |
+| `ToggleGroup` | ViewSegment                                                                                                                                                                                                                                                                               |
 
 Install via `npx shadcn@latest add input tooltip toggle-group`.
 
@@ -254,16 +261,16 @@ Deliberately **not** using: `Card`, `Badge`, `ScrollArea`, `Tabs`, `Dialog`, `Sh
 
 ### Colors (per mock)
 
-| Bucket  | Color                      |
-| ------- | -------------------------- |
-| typed   | `oklch(0.72 0.16 295)` violet |
-| link    | `oklch(0.72 0.15 25)` coral  |
-| reload  | `oklch(0.78 0.14 75)` amber  |
-| form    | `oklch(0.78 0.12 220)` cyan  |
+| Bucket | Color                         |
+| ------ | ----------------------------- |
+| typed  | `oklch(0.72 0.16 295)` violet |
+| link   | `oklch(0.72 0.15 25)` coral   |
+| reload | `oklch(0.78 0.14 75)` amber   |
+| form   | `oklch(0.78 0.12 220)` cyan   |
 
 ## 8. Chrome API specifics
 
-- **Favicons:** `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=<url>&size=16`. Used inside `<FavBadge />` as the *preferred* image, with fallback to the colored letter tile if the img errors or `chrome.runtime.id` is unavailable. Requires `"favicon"` permission (already in manifest).
+- **Favicons:** `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=<url>&size=16`. Used inside `<FavBadge />` as the _preferred_ image, with fallback to the colored letter tile if the img errors or `chrome.runtime.id` is unavailable. Requires `"favicon"` permission (already in manifest).
 - **Permissions already in manifest:** `history`, `storage`, `favicon`. No additions needed.
 - **Service worker (`background.ts`):** no-op for this slice (empty file with `export {}` so TS treats it as a module). Kept for MV3 compliance and future use.
 - **Dev workflow:** `npm run dev` → CRXJS emits `dist/` → load unpacked → `Ctrl+H`. HMR updates the override page in place.

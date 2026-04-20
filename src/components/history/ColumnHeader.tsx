@@ -1,4 +1,4 @@
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown } from "lucide-react";
 
 export function ColumnHeader() {
   return (
@@ -10,5 +10,5 @@ export function ColumnHeader() {
       <div>Address</div>
       <div className="text-right">Views</div>
     </div>
-  )
+  );
 }

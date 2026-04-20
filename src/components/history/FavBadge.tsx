@@ -1,37 +1,44 @@
-import { useState } from 'react'
-import { useChromeApi } from '@/components/ChromeProvider'
-import { cn } from '@/lib/utils'
+import { useState } from "react";
+import { useChromeApi } from "@/components/ChromeProvider";
+import { cn } from "@/lib/utils";
 
 export interface FavBadgeProps {
-  host: string
-  letter: string
-  color: string
-  pageUrl: string
-  size?: 14 | 16
-  className?: string
+  host: string;
+  letter: string;
+  color: string;
+  pageUrl: string;
+  size?: 14 | 16;
+  className?: string;
 }
 
-export function FavBadge({ host, letter, color, pageUrl, size = 16, className }: FavBadgeProps) {
-  const { runtime } = useChromeApi()
-  const extId = runtime.getExtensionId()
-  const [failed, setFailed] = useState(false)
+export function FavBadge({
+  host,
+  letter,
+  color,
+  pageUrl,
+  size = 16,
+  className,
+}: FavBadgeProps) {
+  const { runtime } = useChromeApi();
+  const extId = runtime.getExtensionId();
+  const [failed, setFailed] = useState(false);
   const src =
     extId && !failed
       ? `chrome-extension://${extId}/_favicon/?pageUrl=${encodeURIComponent(pageUrl)}&size=${size}`
-      : null
+      : null;
 
   return (
     <span
       aria-label={host}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center rounded font-mono text-[10px] font-bold',
+        "inline-flex shrink-0 items-center justify-center rounded font-mono text-[10px] font-bold",
         className,
       )}
       style={{
         width: size,
         height: size,
         background: color,
-        color: 'oklch(0.2 0.02 260)',
+        color: "oklch(0.2 0.02 260)",
       }}
     >
       {src ? (
@@ -48,10 +55,10 @@ export function FavBadge({ host, letter, color, pageUrl, size = 16, className }:
         letter
       )}
       {src && (
-        <span aria-hidden="true" style={{ display: 'none' }}>
+        <span aria-hidden="true" style={{ display: "none" }}>
           {letter}
         </span>
       )}
     </span>
-  )
+  );
 }

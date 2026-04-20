@@ -3,11 +3,7 @@
   "name": "Modern History Dashboard",
   "version": "1.0.0",
   "description": "A beautiful, analytics-driven replacement for your Chrome history.",
-  "permissions": [
-    "history",
-    "storage",
-    "favicon"
-  ],
+  "permissions": ["history", "storage", "favicon"],
   "chrome_url_overrides": {
     "history": "src/history.html"
   },

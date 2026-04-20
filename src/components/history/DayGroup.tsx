@@ -1,6 +1,6 @@
-import { HistoryRow } from './HistoryRow'
-import { formatDateLong } from '@/lib/date'
-import type { DayGroup as DayGroupT } from '@/lib/types'
+import { HistoryRow } from "./HistoryRow";
+import { formatDateLong } from "@/lib/date";
+import type { DayGroup as DayGroupT } from "@/lib/types";
 
 export function DayGroup({ group }: { group: DayGroupT }) {
   return (
@@ -10,12 +10,13 @@ export function DayGroup({ group }: { group: DayGroupT }) {
           {formatDateLong(group.date)}
         </div>
         <div className="text-right font-mono text-[11px] text-fg-2">
-          views <b className="ml-1 font-semibold text-fg-0">{group.totalViews}</b>
+          views{" "}
+          <b className="ml-1 font-semibold text-fg-0">{group.totalViews}</b>
         </div>
       </div>
       {group.entries.map((e) => (
         <HistoryRow key={e.id} entry={e} />
       ))}
     </div>
-  )
+  );
 }
