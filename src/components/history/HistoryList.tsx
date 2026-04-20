@@ -38,7 +38,8 @@ export function HistoryList({ entries, loading, query }: HistoryListProps) {
   }, []);
 
   const allCollapsed =
-    groups.length > 0 && collapsedDays.size === groups.length;
+    groups.length > 0 &&
+    groups.every((g) => collapsedDays.has(g.date.toDateString()));
 
   function collapseAll() {
     setCollapsedDays(new Set(groups.map((g) => g.date.toDateString())));
@@ -116,6 +117,7 @@ export function HistoryList({ entries, loading, query }: HistoryListProps) {
       <div className="flex h-[36px] items-center justify-end border-b border-line-0 bg-bg-1 px-4">
         <button
           type="button"
+          aria-expanded={!allCollapsed}
           onClick={allCollapsed ? expandAll : collapseAll}
           className="text-[12px] text-fg-2 hover:text-fg-0 transition-colors"
         >
