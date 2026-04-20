@@ -6,7 +6,7 @@ import type {
   WeekdayBucket,
 } from "./types";
 
-const WEEKDAYS = [
+export const WEEKDAYS = [
   "Sunday",
   "Monday",
   "Tuesday",
@@ -104,8 +104,104 @@ export function isSameWeek(a: Date, b: Date): boolean {
   return startOfWeek(a).getTime() === startOfWeek(b).getTime();
 }
 
-function dayKey(d: Date): string {
+export function dayKey(d: Date): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+export function startOfMonth(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+
+export function isSameMonth(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
+}
+
+function daysInMonth(year: number, month: number): number {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+export function clampDayToMonth(day: number, monthStart: Date): number {
+  return Math.min(
+    day,
+    daysInMonth(monthStart.getFullYear(), monthStart.getMonth()),
+  );
+}
+
+/** Shift by n months, clamping the day-of-month to the target month's length. */
+export function addMonths(d: Date, n: number): Date {
+  const target = new Date(d.getFullYear(), d.getMonth() + n, 1);
+  const day = clampDayToMonth(d.getDate(), target);
+  return new Date(
+    target.getFullYear(),
+    target.getMonth(),
+    day,
+    d.getHours(),
+    d.getMinutes(),
+    d.getSeconds(),
+    d.getMilliseconds(),
+  );
+}
+
+export function monthLabel(d: Date): string {
+  return `${MONTHS_LONG[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/**
+ * Return 42 Dates (6 rows × 7 cols) starting at the Sunday on/before the 1st
+ * of the month, so the calendar grid always has a stable shape.
+ */
+export function monthGrid(monthStart: Date): Date[] {
+  const start = startOfMonth(monthStart);
+  const gridStart = new Date(
+    start.getFullYear(),
+    start.getMonth(),
+    1 - start.getDay(),
+  );
+  const cells: Date[] = [];
+  for (let i = 0; i < 42; i++) {
+    cells.push(
+      new Date(
+        gridStart.getFullYear(),
+        gridStart.getMonth(),
+        gridStart.getDate() + i,
+      ),
+    );
+  }
+  return cells;
+}
+
+/**
+ * Per-calendar-day aggregates for the current month grid, keyed by dayKey.
+ * Entries outside the given month are ignored.
+ */
+export interface MonthCellAgg {
+  pages: number;
+  views: number;
+  /** Up to 2 distinct hostnames of entries on this day, in first-seen order. */
+  domains: string[];
+}
+
+export function monthCellStats(
+  entries: readonly HistoryEntry[],
+  monthStart: Date,
+): Map<string, MonthCellAgg> {
+  const start = startOfMonth(monthStart);
+  const map = new Map<string, MonthCellAgg>();
+  for (const e of entries) {
+    if (!isSameMonth(e.lastVisitTime, start)) continue;
+    const key = dayKey(e.lastVisitTime);
+    let cell = map.get(key);
+    if (!cell) {
+      cell = { pages: 0, views: 0, domains: [] };
+      map.set(key, cell);
+    }
+    cell.pages += 1;
+    cell.views += e.visitCount;
+    if (cell.domains.length < 2 && !cell.domains.includes(e.host)) {
+      cell.domains.push(e.host);
+    }
+  }
+  return map;
 }
 
 export function groupByDay(entries: readonly HistoryEntry[]): DayGroup[] {

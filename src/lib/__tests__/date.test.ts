@@ -7,15 +7,23 @@ import {
   startOfToday,
   startOfHour,
   startOfWeek,
+  startOfMonth,
   isSameDay,
   isSameWeek,
+  isSameMonth,
   addDays,
   addWeeks,
+  addMonths,
+  clampDayToMonth,
   bucketByWeekday,
   groupByDay,
   groupByHour,
   bucketByDay,
   bucketByHour,
+  monthGrid,
+  monthLabel,
+  monthCellStats,
+  dayKey,
 } from "@/lib/date";
 import type { HistoryEntry } from "@/lib/types";
 
@@ -270,6 +278,141 @@ describe("bucketByWeekday", () => {
     // entry outside week is not assigned
     const total = buckets.reduce((n, b) => n + b.entries.length, 0);
     expect(total).toBe(3);
+  });
+});
+
+describe("startOfMonth", () => {
+  it("returns Y/M/1 midnight for any day in the month", () => {
+    const d = startOfMonth(new Date(2026, 3, 17, 12, 34));
+    expect(d.getFullYear()).toBe(2026);
+    expect(d.getMonth()).toBe(3);
+    expect(d.getDate()).toBe(1);
+    expect(d.getHours()).toBe(0);
+    expect(d.getMinutes()).toBe(0);
+  });
+});
+
+describe("isSameMonth", () => {
+  it("is true within the same month/year", () => {
+    expect(
+      isSameMonth(new Date(2026, 3, 1), new Date(2026, 3, 30, 23, 59)),
+    ).toBe(true);
+  });
+  it("is false across month or year boundaries", () => {
+    expect(isSameMonth(new Date(2026, 3, 30), new Date(2026, 4, 1))).toBe(
+      false,
+    );
+    expect(isSameMonth(new Date(2025, 3, 14), new Date(2026, 3, 14))).toBe(
+      false,
+    );
+  });
+});
+
+describe("clampDayToMonth", () => {
+  it("returns the day unchanged when it fits", () => {
+    expect(clampDayToMonth(15, new Date(2026, 3, 1))).toBe(15);
+  });
+  it("clamps to the last day of a shorter month", () => {
+    // Feb 2026 has 28 days
+    expect(clampDayToMonth(31, new Date(2026, 1, 1))).toBe(28);
+  });
+  it("clamps to 29 in a leap February", () => {
+    expect(clampDayToMonth(31, new Date(2024, 1, 1))).toBe(29);
+  });
+});
+
+describe("addMonths", () => {
+  it("shifts by +1 month preserving day-of-month", () => {
+    const d = addMonths(new Date(2026, 3, 14, 10), 1);
+    expect(d.getMonth()).toBe(4);
+    expect(d.getDate()).toBe(14);
+  });
+  it("shifts by -1 month", () => {
+    const d = addMonths(new Date(2026, 3, 14), -1);
+    expect(d.getMonth()).toBe(2);
+    expect(d.getDate()).toBe(14);
+  });
+  it("rolls over the year going forward", () => {
+    const d = addMonths(new Date(2026, 11, 15), 1);
+    expect(d.getFullYear()).toBe(2027);
+    expect(d.getMonth()).toBe(0);
+    expect(d.getDate()).toBe(15);
+  });
+  it("clamps day-of-month when target month is shorter", () => {
+    const d = addMonths(new Date(2026, 0, 31), 1); // Jan 31 + 1 → Feb
+    expect(d.getMonth()).toBe(1);
+    expect(d.getDate()).toBe(28);
+  });
+});
+
+describe("monthLabel", () => {
+  it("returns 'Month YYYY'", () => {
+    expect(monthLabel(new Date(2026, 3, 14))).toBe("April 2026");
+    expect(monthLabel(new Date(2026, 11, 1))).toBe("December 2026");
+  });
+});
+
+describe("monthGrid", () => {
+  it("returns 42 consecutive dates starting at the Sunday on/before the 1st", () => {
+    // April 1, 2026 is a Wednesday → first grid cell is Sunday March 29, 2026
+    const cells = monthGrid(new Date(2026, 3, 1));
+    expect(cells).toHaveLength(42);
+    expect(cells[0].getFullYear()).toBe(2026);
+    expect(cells[0].getMonth()).toBe(2);
+    expect(cells[0].getDate()).toBe(29);
+    expect(cells[41].getMonth()).toBe(4); // May
+    expect(cells[41].getDate()).toBe(9);
+    // Cells should be consecutive days
+    for (let i = 1; i < cells.length; i++) {
+      const diff =
+        (cells[i].getTime() - cells[i - 1].getTime()) / (1000 * 60 * 60 * 24);
+      // Might not be exactly 1 across DST, but should round to 1
+      expect(Math.round(diff)).toBe(1);
+    }
+  });
+  it("is stable regardless of which day in the month is passed", () => {
+    const a = monthGrid(new Date(2026, 3, 1));
+    const b = monthGrid(new Date(2026, 3, 30, 23));
+    expect(a.map(dayKey)).toEqual(b.map(dayKey));
+  });
+});
+
+describe("monthCellStats", () => {
+  it("aggregates pages/views per local calendar day for in-month entries", () => {
+    const monthStart = new Date(2026, 3, 1);
+    const entries = [
+      entry("2026-04-14T09:00:00", 2),
+      entry("2026-04-14T10:30:00", 3),
+      entry("2026-04-15T09:00:00", 1),
+      entry("2026-03-31T23:59:00", 9), // previous month — excluded
+    ];
+    const stats = monthCellStats(entries, monthStart);
+    expect(stats.size).toBe(2);
+    const key14 = dayKey(new Date(2026, 3, 14));
+    const key15 = dayKey(new Date(2026, 3, 15));
+    expect(stats.get(key14)?.pages).toBe(2);
+    expect(stats.get(key14)?.views).toBe(5);
+    expect(stats.get(key15)?.pages).toBe(1);
+    expect(stats.get(key15)?.views).toBe(1);
+    expect(stats.has(dayKey(new Date(2026, 2, 31)))).toBe(false);
+  });
+  it("captures up to 2 distinct domains per day in first-seen order", () => {
+    const make = (iso: string, host: string): HistoryEntry => ({
+      ...entry(iso, 1),
+      host,
+      id: `${iso}-${host}`,
+    });
+    const stats = monthCellStats(
+      [
+        make("2026-04-14T09:00:00", "a.com"),
+        make("2026-04-14T09:05:00", "a.com"), // duplicate host ignored
+        make("2026-04-14T09:10:00", "b.com"),
+        make("2026-04-14T09:15:00", "c.com"), // third host dropped
+      ],
+      new Date(2026, 3, 1),
+    );
+    const key = dayKey(new Date(2026, 3, 14));
+    expect(stats.get(key)?.domains).toEqual(["a.com", "b.com"]);
   });
 });
 
