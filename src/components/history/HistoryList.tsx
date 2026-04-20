@@ -29,13 +29,13 @@ export function HistoryList({ entries, loading, query }: HistoryListProps) {
 
   const [collapsedDays, setCollapsedDays] = useState<Set<string>>(new Set());
 
-  function toggleDay(key: string) {
+  const toggleDay = useCallback((key: string) => {
     setCollapsedDays((prev) => {
       const next = new Set(prev);
       next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
-  }
+  }, []);
 
   const items = useMemo<VirtualRow[]>(() => {
     const list: VirtualRow[] = [];
