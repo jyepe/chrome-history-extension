@@ -1,9 +1,24 @@
 import { formatDateLong } from "@/lib/date";
 import type { DayGroup as DayGroupT } from "@/lib/types";
 
-export function DayHeader({ group }: { group: DayGroupT }) {
+interface DayHeaderProps {
+  group: DayGroupT;
+  collapsed: boolean;
+  onToggle: () => void;
+}
+
+export function DayHeader({ group, collapsed, onToggle }: DayHeaderProps) {
   return (
-    <div className="grid grid-cols-[1fr_80px] items-center border-b border-line-0 bg-bg-1 px-4 pt-[10px] pb-[8px]">
+    <div className="grid grid-cols-[16px_1fr_80px] items-center border-b border-line-0 bg-bg-1 px-4 pt-[10px] pb-[8px]">
+      <button
+        onClick={onToggle}
+        aria-expanded={!collapsed}
+        aria-label={collapsed ? "Expand group" : "Collapse group"}
+        className="flex items-center justify-center text-fg-2 transition-transform duration-150"
+        style={{ transform: collapsed ? "rotate(0deg)" : "rotate(90deg)" }}
+      >
+        ▶
+      </button>
       <div className="text-[13px] font-semibold tracking-[0.1px] text-fg-0">
         {formatDateLong(group.date)}
       </div>

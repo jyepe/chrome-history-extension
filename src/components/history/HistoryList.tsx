@@ -18,7 +18,7 @@ export interface HistoryListProps {
 }
 
 type VirtualRow =
-  | { kind: "header"; group: DayGroupT }
+  | { kind: "header"; group: DayGroupT; collapsed: boolean }
   | { kind: "row"; entry: HistoryEntry };
 
 const HEADER_HEIGHT = 38;
@@ -30,7 +30,7 @@ export function HistoryList({ entries, loading, query }: HistoryListProps) {
   const items = useMemo<VirtualRow[]>(() => {
     const list: VirtualRow[] = [];
     for (const g of groups) {
-      list.push({ kind: "header", group: g });
+      list.push({ kind: "header", group: g, collapsed: false });
       for (const e of g.entries) list.push({ kind: "row", entry: e });
     }
     return list;
@@ -119,7 +119,11 @@ export function HistoryList({ entries, loading, query }: HistoryListProps) {
           return (
             <div key={v.key} data-index={v.index} style={style}>
               {item.kind === "header" ? (
-                <DayHeader group={item.group} />
+                <DayHeader
+                  group={item.group}
+                  collapsed={item.collapsed}
+                  onToggle={() => {}}
+                />
               ) : (
                 <HistoryRow entry={item.entry} />
               )}
