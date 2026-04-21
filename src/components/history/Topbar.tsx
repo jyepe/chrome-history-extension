@@ -1,11 +1,4 @@
-import {
-  LayoutGrid,
-  ChevronLeft,
-  ChevronRight,
-  Info,
-  Calendar,
-  Sliders,
-} from "lucide-react";
+import { LayoutGrid, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "./SearchInput";
 import { ViewSegment, type ViewId } from "./ViewSegment";
@@ -87,24 +80,6 @@ export function Topbar({
           </Button>
         </div>
         <ViewSegment value={view} onChange={onViewChange} />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 cursor-pointer"
-          aria-label="Tweaks"
-          disabled
-        >
-          <Sliders size={14} strokeWidth={1.5} />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 cursor-pointer"
-          aria-label="Info"
-          disabled
-        >
-          <Info size={14} strokeWidth={1.5} />
-        </Button>
       </div>
     </header>
   );

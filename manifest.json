@@ -1,9 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "Modern History Dashboard",
+  "name": "History Revamped",
   "version": "1.0.0",
   "description": "A beautiful, analytics-driven replacement for your Chrome history.",
-  "permissions": ["history", "storage", "favicon", "tabs"],
+  "permissions": [
+    "history",
+    "storage",
+    "favicon",
+    "tabs"
+  ],
   "chrome_url_overrides": {
     "history": "src/history.html"
   },

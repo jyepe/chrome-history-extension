@@ -1,4 +1,4 @@
-# Modern History Dashboard
+# History Revamped
 
 A Chrome extension (Manifest V3) that replaces the default `chrome://history` page with a dark-mode, analytics-driven React dashboard. Press **Ctrl+H** (or open the History menu) and get charts, trend buckets, top-domain rollups, and a virtualized timeline instead of the stock flat list.
 
