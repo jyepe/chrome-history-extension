@@ -25,4 +25,23 @@ describe("promisePool", () => {
   it("returns an empty array for empty input", async () => {
     expect(await promisePool([], 5, async (x) => x)).toEqual([]);
   });
+  it("stops launching new work when the signal is aborted", async () => {
+    let callCount = 0;
+    const controller = new AbortController();
+    const items = Array.from({ length: 30 }, (_, i) => i);
+    await promisePool(
+      items,
+      5,
+      async (n) => {
+        callCount += 1;
+        if (n === 0) controller.abort();
+        await new Promise((r) => setTimeout(r, 5));
+        return n;
+      },
+      { signal: controller.signal },
+    );
+    // With concurrency 5, the first batch of 5 fires before abort takes effect.
+    // Nothing past that first batch should have been launched.
+    expect(callCount).toBeLessThanOrEqual(5);
+  });
 });

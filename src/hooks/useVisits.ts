@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useChromeApi } from "@/components/ChromeProvider";
 import { promisePool } from "@/lib/promisePool";
 import { countTransitions } from "@/lib/transitions";
+import { fetchVisitsCached } from "@/lib/visitsCache";
 import type { HistoryEntry, TransitionCounts } from "@/lib/types";
 
 const MS_PER_DAY = 86_400_000;
@@ -44,30 +45,35 @@ export function useVisits(
       setLoading(false);
       return;
     }
-    let cancelled = false;
+    const controller = new AbortController();
+    const { signal } = controller;
     const windowStart = now - days * MS_PER_DAY;
-    promisePool(urls, CONCURRENCY, async (url) => {
-      const visits = await api.history.getVisits({ url });
-      return visits
-        .filter(
-          (v) => (v.visitTime ?? 0) >= windowStart && (v.visitTime ?? 0) <= now,
-        )
-        .map((v) => v.transition);
-    })
+    promisePool(
+      urls,
+      CONCURRENCY,
+      async (url) => {
+        if (signal.aborted) return [] as string[];
+        const visits = await fetchVisitsCached(api, url);
+        return visits
+          .filter((v) => v.visitTime >= windowStart && v.visitTime <= now)
+          .map((v) => v.transition);
+      },
+      { signal },
+    )
       .then((perUrl) => {
-        if (cancelled) return;
+        if (signal.aborted) return;
         const flat = perUrl.flat();
         setCounts(countTransitions(flat));
         setLoading(false);
       })
       .catch(() => {
-        if (cancelled) return;
+        if (signal.aborted) return;
         setCounts(ZERO);
         setLoading(false);
       });
     setLoading(true);
     return () => {
-      cancelled = true;
+      controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api, urlKey, days, nowMs]);
