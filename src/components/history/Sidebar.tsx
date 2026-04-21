@@ -25,7 +25,7 @@ export function Sidebar({
   activityTitle = "Browsing Activity",
 }: SidebarProps) {
   return (
-    <aside className="scroll-track flex flex-col gap-6 overflow-y-auto bg-bg-0 px-[18px] pb-6 pt-4">
+    <aside className="scroll-track flex flex-col gap-6 overflow-y-auto border-l border-line-0 bg-bg-0 px-[18px] pb-6 pt-4">
       <div className="mb-[2px] font-mono text-[13px] font-medium tracking-[0.2px] text-fg-0">
         {rangeLabel}
       </div>

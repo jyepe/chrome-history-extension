@@ -39,8 +39,8 @@ export function ActivityChart({ buckets }: { buckets: ActivityBucket[] }) {
           <BarChart
             data={buckets}
             margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-            barCategoryGap={4}
-            barGap={2}
+            barCategoryGap={1}
+            barGap={0}
           >
             <CartesianGrid
               vertical={false}
