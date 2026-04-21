@@ -23,7 +23,7 @@ export function MonthEntriesPanel({
   );
 
   return (
-    <section>
+    <aside className="scroll-track flex min-h-0 flex-col overflow-y-auto border-l border-line-0 bg-bg-0 px-[18px] pb-6 pt-4">
       <h3 className="mb-2 text-[13px] font-semibold tracking-[0.1px] text-fg-0">
         Visited Sites <span className="text-fg-3">{sorted.length}</span>
       </h3>
@@ -44,7 +44,7 @@ export function MonthEntriesPanel({
           ))}
         </div>
       )}
-    </section>
+    </aside>
   );
 }
 

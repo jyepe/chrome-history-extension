@@ -98,4 +98,18 @@ describe("MonthEntriesPanel", () => {
     await user.keyboard("{/Control}");
     expect(tabsCreate).not.toHaveBeenCalled();
   });
+
+  it("renders as a self-contained <aside> column with a left border", () => {
+    const entries = [e("a", new Date(2026, 3, 14, 9), "Alpha")];
+    const { container } = wrapWith(
+      <MonthEntriesPanel
+        dayLabel="Tuesday, April 14, 2026"
+        entries={entries}
+      />,
+    );
+    const root = container.firstElementChild;
+    expect(root?.tagName).toBe("ASIDE");
+    expect(root?.className).toMatch(/border-l/);
+    expect(root?.className).toMatch(/overflow-y-auto/);
+  });
 });
