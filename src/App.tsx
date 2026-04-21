@@ -5,6 +5,7 @@ import { HistoryList } from "@/components/history/HistoryList";
 import { DayView } from "@/components/history/DayView";
 import { WeekView } from "@/components/history/WeekView";
 import { MonthView } from "@/components/history/MonthView";
+import { MonthEntriesPanel } from "@/components/history/MonthEntriesPanel";
 import { Sidebar } from "@/components/history/Sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useHistory } from "@/hooks/useHistory";
@@ -174,7 +175,12 @@ export default function App() {
           onToday={onToday}
           canGoNext={canGoNext}
         />
-        <div className="grid min-h-0 grid-cols-[1fr_340px]">
+        <div
+          className={cn(
+            "grid min-h-0",
+            isMonth ? "grid-cols-[1fr_320px_340px]" : "grid-cols-[1fr_340px]",
+          )}
+        >
           <section
             className={cn(
               "grid min-h-0 border-r border-line-0 bg-bg-0",
@@ -220,6 +226,12 @@ export default function App() {
               )}
             </div>
           </section>
+          {isMonth && (
+            <MonthEntriesPanel
+              dayLabel={formatDateLong(selectedDay)}
+              entries={dayEntries}
+            />
+          )}
           <Sidebar
             rangeLabel={rangeLabel}
             buckets={buckets}
@@ -227,8 +239,6 @@ export default function App() {
             domains={domains}
             totalDomains={totalDomains}
             activityTitle={activityTitle}
-            entriesForDay={isMonth ? dayEntries : undefined}
-            entriesDayLabel={isMonth ? formatDateLong(selectedDay) : undefined}
           />
         </div>
       </div>
