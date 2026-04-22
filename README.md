@@ -75,4 +75,4 @@ The gradient lets you scan a month and see which days were heads-down vs. which 
 - **@tanstack/react-virtual** for the List view so 30 days of history scrolls at 60fps.
 - All Chrome API access goes through a `ChromeProvider` context — hooks own data fetching, components stay pure, and tests can swap in a fake Chrome.
 
-Permissions requested: `history`, `storage`, `favicon`, `tabs`. No host permissions, no network access.
+Permissions requested: `history`, `favicon`. No host permissions, no network access.

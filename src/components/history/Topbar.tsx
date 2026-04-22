@@ -1,4 +1,4 @@
-import { LayoutGrid, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "./SearchInput";
 import { ViewSegment, type ViewId } from "./ViewSegment";
@@ -31,15 +31,7 @@ export function Topbar({
   const todayDisabled = !onToday;
   return (
     <header className="grid h-12 grid-cols-[1fr_auto_1fr] items-center gap-4 border-b border-line-0 bg-[linear-gradient(180deg,var(--color-bg-1),var(--color-bg-0))] px-[14px]">
-      <div className="flex items-center gap-[10px]">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          aria-label="Menu"
-        >
-          <LayoutGrid size={16} strokeWidth={1.5} />
-        </Button>
+      <div className="flex items-center">
         <SearchInput value={query} onChange={onQueryChange} />
       </div>
 
