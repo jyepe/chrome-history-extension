@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { ChromeProvider } from "@/components/ChromeProvider";
 import { createFakeChromeApi } from "@/lib/__tests__/test-chrome";
 import { DayView } from "@/components/history/DayView";
@@ -76,5 +77,128 @@ describe("DayView", () => {
     expect(screen.getByText("Alpha Page")).toBeInTheDocument();
     expect(screen.getByText("Beta Page")).toBeInTheDocument();
     expect(screen.getByText("Gamma Page")).toBeInTheDocument();
+  });
+});
+
+describe("DayView — collapse per hour", () => {
+  const selectedDay = new Date(2026, 3, 14);
+  const entries = [
+    e("alpha", new Date(2026, 3, 14, 9, 30), "Alpha Page"),
+    e("beta", new Date(2026, 3, 14, 14, 5), "Beta Page"),
+    e("gamma", new Date(2026, 3, 14, 14, 50), "Gamma Page"),
+  ];
+
+  it("shows all rows initially", () => {
+    wrap(
+      <DayView
+        entries={entries}
+        loading={false}
+        query=""
+        selectedDay={selectedDay}
+      />,
+    );
+    expect(screen.getByText("Alpha Page")).toBeInTheDocument();
+    expect(screen.getByText("Beta Page")).toBeInTheDocument();
+    expect(screen.getByText("Gamma Page")).toBeInTheDocument();
+  });
+
+  it("hides an hour's rows when its chevron is clicked", async () => {
+    wrap(
+      <DayView
+        entries={entries}
+        loading={false}
+        query=""
+        selectedDay={selectedDay}
+      />,
+    );
+    // First chevron = 2 PM group (most recent, first in list)
+    const buttons = screen.getAllByRole("button", { name: "Collapse hour" });
+    await userEvent.click(buttons[0]);
+    expect(screen.queryByText("Beta Page")).not.toBeInTheDocument();
+    expect(screen.queryByText("Gamma Page")).not.toBeInTheDocument();
+    expect(screen.getByText("Alpha Page")).toBeInTheDocument();
+  });
+
+  it("restores rows when chevron is clicked again", async () => {
+    wrap(
+      <DayView
+        entries={entries}
+        loading={false}
+        query=""
+        selectedDay={selectedDay}
+      />,
+    );
+    const buttons = screen.getAllByRole("button", { name: "Collapse hour" });
+    await userEvent.click(buttons[0]);
+    const expandBtn = screen.getAllByRole("button", { name: "Expand hour" })[0];
+    await userEvent.click(expandBtn);
+    expect(screen.getByText("Beta Page")).toBeInTheDocument();
+    expect(screen.getByText("Gamma Page")).toBeInTheDocument();
+  });
+});
+
+describe("DayView — collapse all / expand all", () => {
+  const selectedDay = new Date(2026, 3, 14);
+  const entries = [
+    e("alpha", new Date(2026, 3, 14, 9, 30), "Alpha Page"),
+    e("beta", new Date(2026, 3, 14, 14, 5), "Beta Page"),
+  ];
+
+  it("renders a 'Collapse all' button", () => {
+    wrap(
+      <DayView
+        entries={entries}
+        loading={false}
+        query=""
+        selectedDay={selectedDay}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Collapse all" }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides all rows after clicking 'Collapse all'", async () => {
+    wrap(
+      <DayView
+        entries={entries}
+        loading={false}
+        query=""
+        selectedDay={selectedDay}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Collapse all" }));
+    expect(screen.queryByText("Alpha Page")).not.toBeInTheDocument();
+    expect(screen.queryByText("Beta Page")).not.toBeInTheDocument();
+  });
+
+  it("shows 'Expand all' after collapsing all", async () => {
+    wrap(
+      <DayView
+        entries={entries}
+        loading={false}
+        query=""
+        selectedDay={selectedDay}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Collapse all" }));
+    expect(
+      screen.getByRole("button", { name: "Expand all" }),
+    ).toBeInTheDocument();
+  });
+
+  it("restores all rows after clicking 'Expand all'", async () => {
+    wrap(
+      <DayView
+        entries={entries}
+        loading={false}
+        query=""
+        selectedDay={selectedDay}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Collapse all" }));
+    await userEvent.click(screen.getByRole("button", { name: "Expand all" }));
+    expect(screen.getByText("Alpha Page")).toBeInTheDocument();
+    expect(screen.getByText("Beta Page")).toBeInTheDocument();
   });
 });
