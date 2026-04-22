@@ -187,7 +187,9 @@ export default function App() {
               hideColumnHeader ? "grid-rows-[1fr]" : "grid-rows-[32px_1fr]",
             )}
           >
-            {!hideColumnHeader && <ColumnHeader />}
+            {!hideColumnHeader && (
+              <ColumnHeader dateOrTimeText={isDay ? "Time" : "Date"} />
+            )}
             <div
               className={cn(
                 "overflow-x-hidden",
