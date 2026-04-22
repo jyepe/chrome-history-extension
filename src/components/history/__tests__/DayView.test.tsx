@@ -25,14 +25,7 @@ describe("DayView", () => {
   const selectedDay = new Date(2026, 3, 14);
 
   it("renders a loading skeleton when loading and no entries", () => {
-    wrap(
-      <DayView
-        entries={[]}
-        loading
-        query=""
-        selectedDay={selectedDay}
-      />,
-    );
+    wrap(<DayView entries={[]} loading query="" selectedDay={selectedDay} />);
     expect(screen.getByLabelText("Loading history")).toBeInTheDocument();
   });
 
@@ -76,8 +69,10 @@ describe("DayView", () => {
         selectedDay={selectedDay}
       />,
     );
-    const hours = screen.getAllByText(/^\d{2}:00$/).map((el) => el.textContent);
-    expect(hours).toEqual(["14:00", "09:00"]);
+    const hours = screen
+      .getAllByText(/^\d{1,2}:00\s(AM|PM)$/)
+      .map((el) => el.textContent);
+    expect(hours).toEqual(["2:00 PM", "9:00 AM"]);
     expect(screen.getByText("Alpha Page")).toBeInTheDocument();
     expect(screen.getByText("Beta Page")).toBeInTheDocument();
     expect(screen.getByText("Gamma Page")).toBeInTheDocument();

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   formatTime,
+  formatHourLabel,
   formatDateLong,
   formatShortDate,
   startOfDay,
@@ -41,8 +42,35 @@ const entry = (iso: string, views = 1): HistoryEntry => ({
 });
 
 describe("formatTime", () => {
-  it("pads hours/minutes/seconds to 2 digits", () => {
-    expect(formatTime(new Date("2026-04-14T05:07:09"))).toBe("05:07:09");
+  it("renders AM times with padded minutes/seconds", () => {
+    expect(formatTime(new Date("2026-04-14T05:07:09"))).toBe("5:07:09 AM");
+  });
+  it("renders PM times", () => {
+    expect(formatTime(new Date("2026-04-14T14:05:09"))).toBe("2:05:09 PM");
+  });
+  it("renders midnight as 12 AM", () => {
+    expect(formatTime(new Date("2026-04-14T00:00:00"))).toBe("12:00:00 AM");
+  });
+  it("renders noon as 12 PM", () => {
+    expect(formatTime(new Date("2026-04-14T12:00:00"))).toBe("12:00:00 PM");
+  });
+});
+
+describe("formatHourLabel", () => {
+  it("renders midnight as 12:00 AM", () => {
+    expect(formatHourLabel(0)).toBe("12:00 AM");
+  });
+  it("renders morning hours", () => {
+    expect(formatHourLabel(9)).toBe("9:00 AM");
+  });
+  it("renders noon as 12:00 PM", () => {
+    expect(formatHourLabel(12)).toBe("12:00 PM");
+  });
+  it("renders afternoon hours", () => {
+    expect(formatHourLabel(14)).toBe("2:00 PM");
+  });
+  it("renders late evening", () => {
+    expect(formatHourLabel(23)).toBe("11:00 PM");
   });
 });
 

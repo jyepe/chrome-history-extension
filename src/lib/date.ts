@@ -47,7 +47,16 @@ const MONTHS_SHORT = [
 const pad = (n: number) => String(n).padStart(2, "0");
 
 export function formatTime(d: Date): string {
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  const h = d.getHours();
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h % 12 === 0 ? 12 : h % 12;
+  return `${hour12}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${period}`;
+}
+
+export function formatHourLabel(hour: number): string {
+  const period = hour >= 12 ? "PM" : "AM";
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${hour12}:00 ${period}`;
 }
 
 export function formatDateLong(d: Date): string {
