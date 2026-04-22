@@ -32,7 +32,7 @@ const renderRow = (e: HistoryEntry, tabsCreate?: TabsCreate) =>
 describe("HistoryRow", () => {
   it("renders time, title, url, and view count", () => {
     renderRow(entry);
-    expect(screen.getByText("09:30:05")).toBeInTheDocument();
+    expect(screen.getByText("9:30:05 AM")).toBeInTheDocument();
     expect(screen.getByText("anthropics/claude-sdk")).toBeInTheDocument();
     expect(screen.getByText(/github\.com/)).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
