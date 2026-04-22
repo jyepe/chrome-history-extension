@@ -34,57 +34,55 @@ export function ActivityChart({ buckets }: { buckets: ActivityBucket[] }) {
 
   return (
     <div>
-      <div className="h-[130px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={buckets}
-            margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-            barCategoryGap={1}
-            barGap={0}
-          >
-            <CartesianGrid
-              vertical={false}
-              stroke="var(--color-line-0)"
-              strokeDasharray="2 3"
-            />
-            <XAxis
-              dataKey="label"
-              tickLine={false}
-              axisLine={false}
-              interval={1}
-              tick={{
-                fontSize: 9,
-                fontFamily: "var(--font-mono)",
-                fill: "var(--color-fg-2)",
-              }}
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              width={28}
-              tick={{
-                fontSize: 9,
-                fontFamily: "var(--font-mono)",
-                fill: "var(--color-fg-2)",
-              }}
-            />
-            <Tooltip
-              cursor={{ fill: "var(--color-bg-hover)" }}
-              content={<ChartTooltip />}
-            />
-            <Bar
-              dataKey="views"
-              fill="var(--color-amber)"
-              radius={[1, 1, 0, 0]}
-            />
-            <Bar
-              dataKey="pages"
-              fill="var(--color-cyan)"
-              radius={[1, 1, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      <ResponsiveContainer width="100%" height={130}>
+        <BarChart
+          data={buckets}
+          margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+          barCategoryGap={1}
+          barGap={0}
+        >
+          <CartesianGrid
+            vertical={false}
+            stroke="var(--color-line-0)"
+            strokeDasharray="2 3"
+          />
+          <XAxis
+            dataKey="label"
+            tickLine={false}
+            axisLine={false}
+            interval={1}
+            tick={{
+              fontSize: 9,
+              fontFamily: "var(--font-mono)",
+              fill: "var(--color-fg-2)",
+            }}
+          />
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            width={28}
+            tick={{
+              fontSize: 9,
+              fontFamily: "var(--font-mono)",
+              fill: "var(--color-fg-2)",
+            }}
+          />
+          <Tooltip
+            cursor={{ fill: "var(--color-bg-hover)" }}
+            content={<ChartTooltip />}
+          />
+          <Bar
+            dataKey="views"
+            fill="var(--color-amber)"
+            radius={[1, 1, 0, 0]}
+          />
+          <Bar
+            dataKey="pages"
+            fill="var(--color-cyan)"
+            radius={[1, 1, 0, 0]}
+          />
+        </BarChart>
+      </ResponsiveContainer>
       <div className="mt-[10px] flex flex-wrap gap-[10px_14px]">
         <span className="inline-flex items-center gap-[6px] text-[11px] text-fg-2">
           <span className="h-[10px] w-[10px] rounded-[2px] bg-amber" />
