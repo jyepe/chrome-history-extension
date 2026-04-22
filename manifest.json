@@ -5,9 +5,7 @@
   "description": "A beautiful, analytics-driven replacement for your Chrome history.",
   "permissions": [
     "history",
-    "storage",
-    "favicon",
-    "tabs"
+    "favicon"
   ],
   "chrome_url_overrides": {
     "history": "src/history.html"
